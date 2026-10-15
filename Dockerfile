@@ -30,7 +30,6 @@ RUN apt-get update \
 # CMake puts the executables in src/bin. Only the four programs the chain uses.
 COPY --from=build /nll/src/bin/NLLoc /nll/src/bin/Vel2Grid /nll/src/bin/Grid2Time \
                   /nll/src/bin/GridCascadingDecimate /opt/nll/bin/
-COPY --from=build /nll/src/GridLib.h /opt/nll/src/GridLib.h
 
 # Production inputs, unchanged: 1D models with the zone table and corrections, 3D
 # corrections, and the station snapshot.
