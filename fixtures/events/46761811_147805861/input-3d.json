@@ -1,0 +1,693 @@
+{
+  "model": "TOMORAMA-2013",
+  "dimension": "3d",
+  "station_corrections": true,
+  "event_id": "46761811",
+  "origin_id": "147805861",
+  "observations": [
+    {
+      "station": "ATPI",
+      "channel": "EHZ",
+      "onset": "?",
+      "phase": "P",
+      "first_motion": "?",
+      "time": "2026-10-03T20:26:21.470000Z",
+      "quality": 4
+    },
+    {
+      "station": "ARVD",
+      "channel": "HHZ",
+      "onset": "?",
+      "phase": "P",
+      "first_motion": "?",
+      "time": "2026-10-03T20:26:08.920000Z",
+      "quality": 4
+    },
+    {
+      "station": "DGI",
+      "channel": "HHZ",
+      "onset": "?",
+      "phase": "P",
+      "first_motion": "?",
+      "time": "2026-10-03T20:26:07.310000Z",
+      "quality": 4
+    },
+    {
+      "station": "CGL1",
+      "channel": "HHZ",
+      "onset": "?",
+      "phase": "S",
+      "first_motion": "?",
+      "time": "2026-10-03T20:26:00.470000Z",
+      "quality": 4
+    },
+    {
+      "station": "MRVN",
+      "channel": "HHZ",
+      "onset": "?",
+      "phase": "S",
+      "first_motion": "?",
+      "time": "2026-10-03T20:26:00.030000Z",
+      "quality": 4
+    },
+    {
+      "station": "AMUR",
+      "channel": "HHZ",
+      "onset": "?",
+      "phase": "S",
+      "first_motion": "?",
+      "time": "2026-10-03T20:25:58.430000Z",
+      "quality": 4
+    },
+    {
+      "station": "MATE",
+      "channel": "HHZ",
+      "onset": "?",
+      "phase": "S",
+      "first_motion": "?",
+      "time": "2026-10-03T20:25:54.250000Z",
+      "quality": 4
+    },
+    {
+      "station": "LPDG",
+      "channel": "HHZ",
+      "onset": "?",
+      "phase": "P",
+      "first_motion": "D",
+      "time": "2026-10-03T20:25:53.240000Z",
+      "quality": 4
+    },
+    {
+      "station": "HLNI",
+      "channel": "HHZ",
+      "onset": "?",
+      "phase": "S",
+      "first_motion": "?",
+      "time": "2026-10-03T20:25:46.160000Z",
+      "quality": 4
+    },
+    {
+      "station": "CUC",
+      "channel": "HHZ",
+      "onset": "?",
+      "phase": "S",
+      "first_motion": "?",
+      "time": "2026-10-03T20:25:37.230000Z",
+      "quality": 4
+    },
+    {
+      "station": "ERC",
+      "channel": "EHZ",
+      "onset": "?",
+      "phase": "P",
+      "first_motion": "?",
+      "time": "2026-10-03T20:25:37.630000Z",
+      "quality": 4
+    },
+    {
+      "station": "AIO",
+      "channel": "HHZ",
+      "onset": "?",
+      "phase": "S",
+      "first_motion": "?",
+      "time": "2026-10-03T20:25:35.850000Z",
+      "quality": 1
+    },
+    {
+      "station": "CET2",
+      "channel": "HHZ",
+      "onset": "?",
+      "phase": "S",
+      "first_motion": "?",
+      "time": "2026-10-03T20:25:34.220000Z",
+      "quality": 2
+    },
+    {
+      "station": "CO22",
+      "channel": "HHZ",
+      "onset": "?",
+      "phase": "S",
+      "first_motion": "?",
+      "time": "2026-10-03T20:25:34.980000Z",
+      "quality": 2
+    },
+    {
+      "station": "MUGA",
+      "channel": "EHZ",
+      "onset": "?",
+      "phase": "S",
+      "first_motion": "?",
+      "time": "2026-10-03T20:25:33.250000Z",
+      "quality": 2
+    },
+    {
+      "station": "CAR1",
+      "channel": "HHZ",
+      "onset": "?",
+      "phase": "S",
+      "first_motion": "?",
+      "time": "2026-10-03T20:25:32.820000Z",
+      "quality": 1
+    },
+    {
+      "station": "MPNC",
+      "channel": "HHZ",
+      "onset": "?",
+      "phase": "S",
+      "first_motion": "?",
+      "time": "2026-10-03T20:25:32.170000Z",
+      "quality": 2
+    },
+    {
+      "station": "MRCB",
+      "channel": "HHZ",
+      "onset": "?",
+      "phase": "S",
+      "first_motion": "?",
+      "time": "2026-10-03T20:25:32.040000Z",
+      "quality": 2
+    },
+    {
+      "station": "UC01",
+      "channel": "HHZ",
+      "onset": "?",
+      "phase": "S",
+      "first_motion": "?",
+      "time": "2026-10-03T20:25:31.560000Z",
+      "quality": 2
+    },
+    {
+      "station": "FALC",
+      "channel": "HHZ",
+      "onset": "?",
+      "phase": "S",
+      "first_motion": "?",
+      "time": "2026-10-03T20:25:31.610000Z",
+      "quality": 2
+    },
+    {
+      "station": "RICA",
+      "channel": "HHZ",
+      "onset": "?",
+      "phase": "S",
+      "first_motion": "?",
+      "time": "2026-10-03T20:25:30.000000Z",
+      "quality": 2
+    },
+    {
+      "station": "MSRU",
+      "channel": "HHZ",
+      "onset": "?",
+      "phase": "S",
+      "first_motion": "?",
+      "time": "2026-10-03T20:25:30.690000Z",
+      "quality": 2
+    },
+    {
+      "station": "AMUR",
+      "channel": "HHZ",
+      "onset": "?",
+      "phase": "P",
+      "first_motion": "?",
+      "time": "2026-10-03T20:25:29.010000Z",
+      "quality": 4
+    },
+    {
+      "station": "NOCI",
+      "channel": "HHZ",
+      "onset": "?",
+      "phase": "P",
+      "first_motion": "U",
+      "time": "2026-10-03T20:25:28.610000Z",
+      "quality": 4
+    },
+    {
+      "station": "TAR1",
+      "channel": "HHZ",
+      "onset": "?",
+      "phase": "P",
+      "first_motion": "U",
+      "time": "2026-10-03T20:25:27.540000Z",
+      "quality": 4
+    },
+    {
+      "station": "LTRZ",
+      "channel": "HHZ",
+      "onset": "?",
+      "phase": "P",
+      "first_motion": "?",
+      "time": "2026-10-03T20:25:26.300000Z",
+      "quality": 4
+    },
+    {
+      "station": "MIGL",
+      "channel": "HHZ",
+      "onset": "?",
+      "phase": "P",
+      "first_motion": "U",
+      "time": "2026-10-03T20:25:25.710000Z",
+      "quality": 4
+    },
+    {
+      "station": "CRAC",
+      "channel": "HHZ",
+      "onset": "?",
+      "phase": "P",
+      "first_motion": "D",
+      "time": "2026-10-03T20:25:24.490000Z",
+      "quality": 4
+    },
+    {
+      "station": "SSY",
+      "channel": "HHZ",
+      "onset": "?",
+      "phase": "P",
+      "first_motion": "U",
+      "time": "2026-10-03T20:25:23.050000Z",
+      "quality": 4
+    },
+    {
+      "station": "HCRL",
+      "channel": "HHZ",
+      "onset": "?",
+      "phase": "P",
+      "first_motion": "U",
+      "time": "2026-10-03T20:25:22.420000Z",
+      "quality": 4
+    },
+    {
+      "station": "SIRI",
+      "channel": "HHZ",
+      "onset": "?",
+      "phase": "P",
+      "first_motion": "?",
+      "time": "2026-10-03T20:25:21.030000Z",
+      "quality": 4
+    },
+    {
+      "station": "MGR",
+      "channel": "HHZ",
+      "onset": "?",
+      "phase": "P",
+      "first_motion": "U",
+      "time": "2026-10-03T20:25:21.570000Z",
+      "quality": 4
+    },
+    {
+      "station": "BIDON",
+      "channel": "HHZ",
+      "onset": "?",
+      "phase": "P",
+      "first_motion": "?",
+      "time": "2026-10-03T20:25:21.180000Z",
+      "quality": 4
+    },
+    {
+      "station": "HLNI",
+      "channel": "HHZ",
+      "onset": "?",
+      "phase": "P",
+      "first_motion": "U",
+      "time": "2026-10-03T20:25:21.930000Z",
+      "quality": 4
+    },
+    {
+      "station": "TNOVA",
+      "channel": "HHZ",
+      "onset": "?",
+      "phase": "P",
+      "first_motion": "D",
+      "time": "2026-10-03T20:25:21.410000Z",
+      "quality": 4
+    },
+    {
+      "station": "SALB",
+      "channel": "HHZ",
+      "onset": "?",
+      "phase": "P",
+      "first_motion": "?",
+      "time": "2026-10-03T20:25:20.230000Z",
+      "quality": 4
+    },
+    {
+      "station": "CUC",
+      "channel": "HHZ",
+      "onset": "?",
+      "phase": "P",
+      "first_motion": "U",
+      "time": "2026-10-03T20:25:19.440000Z",
+      "quality": 4
+    },
+    {
+      "station": "EPOZ",
+      "channel": "HHZ",
+      "onset": "?",
+      "phase": "P",
+      "first_motion": "U",
+      "time": "2026-10-03T20:25:19.000000Z",
+      "quality": 4
+    },
+    {
+      "station": "MMN",
+      "channel": "HHZ",
+      "onset": "?",
+      "phase": "P",
+      "first_motion": "?",
+      "time": "2026-10-03T20:25:19.090000Z",
+      "quality": 4
+    },
+    {
+      "station": "MORMA",
+      "channel": "HHZ",
+      "onset": "?",
+      "phase": "P",
+      "first_motion": "U",
+      "time": "2026-10-03T20:25:18.470000Z",
+      "quality": 4
+    },
+    {
+      "station": "LADO",
+      "channel": "EHZ",
+      "onset": "?",
+      "phase": "P",
+      "first_motion": "D",
+      "time": "2026-10-03T20:25:18.680000Z",
+      "quality": 4
+    },
+    {
+      "station": "TDS",
+      "channel": "HHZ",
+      "onset": "?",
+      "phase": "P",
+      "first_motion": "U",
+      "time": "2026-10-03T20:25:18.100000Z",
+      "quality": 2
+    },
+    {
+      "station": "SHEVA",
+      "channel": "HHZ",
+      "onset": "?",
+      "phase": "P",
+      "first_motion": "D",
+      "time": "2026-10-03T20:25:18.970000Z",
+      "quality": 4
+    },
+    {
+      "station": "CELI",
+      "channel": "HHZ",
+      "onset": "?",
+      "phase": "P",
+      "first_motion": "D",
+      "time": "2026-10-03T20:25:17.590000Z",
+      "quality": 3
+    },
+    {
+      "station": "T0702",
+      "channel": "HHZ",
+      "onset": "?",
+      "phase": "P",
+      "first_motion": "?",
+      "time": "2026-10-03T20:25:17.860000Z",
+      "quality": 2
+    },
+    {
+      "station": "MCDA",
+      "channel": "HHZ",
+      "onset": "?",
+      "phase": "P",
+      "first_motion": "D",
+      "time": "2026-10-03T20:25:17.480000Z",
+      "quality": 4
+    },
+    {
+      "station": "SELL",
+      "channel": "HHZ",
+      "onset": "?",
+      "phase": "P",
+      "first_motion": "U",
+      "time": "2026-10-03T20:25:16.310000Z",
+      "quality": 0
+    },
+    {
+      "station": "BASIC",
+      "channel": "HHZ",
+      "onset": "?",
+      "phase": "P",
+      "first_motion": "D",
+      "time": "2026-10-03T20:25:16.670000Z",
+      "quality": 2
+    },
+    {
+      "station": "CET2",
+      "channel": "HHZ",
+      "onset": "?",
+      "phase": "P",
+      "first_motion": "U",
+      "time": "2026-10-03T20:25:16.000000Z",
+      "quality": 0
+    },
+    {
+      "station": "SPNT",
+      "channel": "EHZ",
+      "onset": "?",
+      "phase": "P",
+      "first_motion": "D",
+      "time": "2026-10-03T20:25:16.830000Z",
+      "quality": 0
+    },
+    {
+      "station": "CO22",
+      "channel": "HHZ",
+      "onset": "?",
+      "phase": "P",
+      "first_motion": "D",
+      "time": "2026-10-03T20:25:16.530000Z",
+      "quality": 1
+    },
+    {
+      "station": "AIO",
+      "channel": "HHZ",
+      "onset": "?",
+      "phase": "P",
+      "first_motion": "?",
+      "time": "2026-10-03T20:25:16.680000Z",
+      "quality": 2
+    },
+    {
+      "station": "IVPL",
+      "channel": "HHZ",
+      "onset": "?",
+      "phase": "P",
+      "first_motion": "?",
+      "time": "2026-10-03T20:25:15.190000Z",
+      "quality": 2
+    },
+    {
+      "station": "CSGE1",
+      "channel": "HHZ",
+      "onset": "?",
+      "phase": "P",
+      "first_motion": "U",
+      "time": "2026-10-03T20:25:15.580000Z",
+      "quality": 0
+    },
+    {
+      "station": "GRI",
+      "channel": "HHZ",
+      "onset": "?",
+      "phase": "P",
+      "first_motion": "U",
+      "time": "2026-10-03T20:25:15.080000Z",
+      "quality": 0
+    },
+    {
+      "station": "PLAC",
+      "channel": "HHZ",
+      "onset": "?",
+      "phase": "P",
+      "first_motion": "U",
+      "time": "2026-10-03T20:25:15.220000Z",
+      "quality": 0
+    },
+    {
+      "station": "SPS2",
+      "channel": "HHZ",
+      "onset": "?",
+      "phase": "P",
+      "first_motion": "U",
+      "time": "2026-10-03T20:25:15.740000Z",
+      "quality": 3
+    },
+    {
+      "station": "CHCE",
+      "channel": "HHZ",
+      "onset": "?",
+      "phase": "P",
+      "first_motion": "U",
+      "time": "2026-10-03T20:25:15.120000Z",
+      "quality": 0
+    },
+    {
+      "station": "SOI",
+      "channel": "HHZ",
+      "onset": "?",
+      "phase": "P",
+      "first_motion": "U",
+      "time": "2026-10-03T20:25:15.520000Z",
+      "quality": 0
+    },
+    {
+      "station": "CNDF",
+      "channel": "HHZ",
+      "onset": "?",
+      "phase": "P",
+      "first_motion": "D",
+      "time": "2026-10-03T20:25:15.900000Z",
+      "quality": 1
+    },
+    {
+      "station": "OPPI",
+      "channel": "HHZ",
+      "onset": "?",
+      "phase": "P",
+      "first_motion": "U",
+      "time": "2026-10-03T20:25:14.590000Z",
+      "quality": 0
+    },
+    {
+      "station": "FALC",
+      "channel": "HHZ",
+      "onset": "?",
+      "phase": "P",
+      "first_motion": "U",
+      "time": "2026-10-03T20:25:14.520000Z",
+      "quality": 0
+    },
+    {
+      "station": "CAR1",
+      "channel": "HHZ",
+      "onset": "?",
+      "phase": "P",
+      "first_motion": "U",
+      "time": "2026-10-03T20:25:14.900000Z",
+      "quality": 0
+    },
+    {
+      "station": "GIZZ",
+      "channel": "HHZ",
+      "onset": "?",
+      "phase": "P",
+      "first_motion": "U",
+      "time": "2026-10-03T20:25:14.100000Z",
+      "quality": 1
+    },
+    {
+      "station": "MPNC",
+      "channel": "HHZ",
+      "onset": "?",
+      "phase": "P",
+      "first_motion": "U",
+      "time": "2026-10-03T20:25:14.560000Z",
+      "quality": 3
+    },
+    {
+      "station": "MRCB",
+      "channel": "HHZ",
+      "onset": "?",
+      "phase": "P",
+      "first_motion": "U",
+      "time": "2026-10-03T20:25:14.510000Z",
+      "quality": 2
+    },
+    {
+      "station": "MUGA",
+      "channel": "EHZ",
+      "onset": "?",
+      "phase": "P",
+      "first_motion": "D",
+      "time": "2026-10-03T20:25:14.890000Z",
+      "quality": 2
+    },
+    {
+      "station": "UC01",
+      "channel": "HHZ",
+      "onset": "?",
+      "phase": "P",
+      "first_motion": "U",
+      "time": "2026-10-03T20:25:14.200000Z",
+      "quality": 0
+    },
+    {
+      "station": "GIOM",
+      "channel": "HHZ",
+      "onset": "?",
+      "phase": "P",
+      "first_motion": "D",
+      "time": "2026-10-03T20:25:14.530000Z",
+      "quality": 0
+    },
+    {
+      "station": "CARP",
+      "channel": "HHZ",
+      "onset": "?",
+      "phase": "P",
+      "first_motion": "D",
+      "time": "2026-10-03T20:25:14.920000Z",
+      "quality": 0
+    },
+    {
+      "station": "RICA",
+      "channel": "HHZ",
+      "onset": "?",
+      "phase": "P",
+      "first_motion": "U",
+      "time": "2026-10-03T20:25:13.130000Z",
+      "quality": 0
+    },
+    {
+      "station": "NICCA",
+      "channel": "HNN",
+      "onset": "?",
+      "phase": "P",
+      "first_motion": "?",
+      "time": "2026-10-03T20:25:13.240000Z",
+      "quality": 0
+    },
+    {
+      "station": "MSRU",
+      "channel": "HHZ",
+      "onset": "?",
+      "phase": "P",
+      "first_motion": "U",
+      "time": "2026-10-03T20:25:13.820000Z",
+      "quality": 0
+    },
+    {
+      "station": "BRICA",
+      "channel": "EHN",
+      "onset": "?",
+      "phase": "P",
+      "first_motion": "?",
+      "time": "2026-10-03T20:25:13.260000Z",
+      "quality": 0
+    },
+    {
+      "station": "VBL2",
+      "channel": "EHZ",
+      "onset": "?",
+      "phase": "P",
+      "first_motion": "D",
+      "time": "2026-10-03T20:25:13.600000Z",
+      "quality": 2
+    },
+    {
+      "station": "SPDC",
+      "channel": "HHZ",
+      "onset": "?",
+      "phase": "P",
+      "first_motion": "U",
+      "time": "2026-10-03T20:25:13.990000Z",
+      "quality": 0
+    }
+  ]
+}

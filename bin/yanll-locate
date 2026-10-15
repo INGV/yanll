@@ -1,0 +1,93 @@
+#!/usr/bin/env python3
+"""Locate one event with NonLinLoc from a JSON document.
+
+Reads the input document (a file, or stdin with `-`), writes the observation file and
+the control file exactly as production does for the chosen model, generates the
+travel-time grids the stations need (yanll-make-grids), runs NLLoc and writes the
+location as a JSON document on stdout. See docs/json-schema.md.
+
+Exit codes: 0 located, 1 NLLoc did not locate (the document still reports its status),
+2 invalid input, 3 grid generation or NLLoc failure.
+"""
+import argparse
+import glob
+import json
+import os
+import shutil
+import subprocess
+import sys
+import tempfile
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import yanlllib as y  # noqa: E402
+
+
+def main():
+    ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    ap.add_argument("input", help="input JSON file, or - for stdin")
+    ap.add_argument("-o", "--output", help="output JSON file (default stdout)")
+    ap.add_argument("--keep", action="store_true", help="keep the work directory under $YANLL_DATA/locate and name it on stderr")
+    args = ap.parse_args()
+
+    try:
+        doc = json.load(sys.stdin if args.input == "-" else open(args.input))
+        run = y.validate_input(doc)
+    except (json.JSONDecodeError, OSError) as e:
+        print(f"yanll-locate: cannot read input: {e}", file=sys.stderr)
+        return 2
+    except y.InputError as e:
+        print(f"yanll-locate: invalid input: {e}", file=sys.stderr)
+        return 2
+
+    root = f"{run['event_id']}_{run['origin_id']}" if "event_id" in run and "origin_id" in run else "event"
+    os.makedirs(os.path.join(y.DATA, "locate"), exist_ok=True)
+    workdir = tempfile.mkdtemp(prefix=f"{root}-", dir=os.path.join(y.DATA, "locate"))
+    obs_path = os.path.join(workdir, f"{root}.phsnll")
+    y.write_obs(run["observations"], obs_path)
+    stations = sorted({o["station"] for o in run["observations"]})
+    model = run["model"]
+    if run["dimension"] == "3d":
+        time_root = os.path.join(y.DATA, "time_3d", y.MODEL_3D, "time")
+        model_hdr = os.path.join(y.DATA, "model_3d", "model.P.mod.hdr")
+    else:
+        time_root = os.path.join(y.DATA, "time_1d", model, "time")
+
+    with open(os.path.join(workdir, "make-grids.log"), "w") as log:
+        r = subprocess.run(["yanll-make-grids", model] + stations, stdout=log, stderr=subprocess.STDOUT)
+    if r.returncode != 0:
+        print(f"yanll-locate: grid generation failed, see {workdir}/make-grids.log", file=sys.stderr)
+        return 3
+
+    out_root = os.path.join(workdir, root)
+    if run["dimension"] == "3d":
+        control = y.control_3d(obs_path, time_root, out_root, run["station_corrections"], model_hdr)
+    else:
+        control = y.control_1d(model, obs_path, time_root, out_root, run["station_corrections"])
+    control_path = os.path.join(workdir, f"{root}_loc.in")
+    with open(control_path, "w") as f:
+        f.write(control)
+    with open(os.path.join(workdir, "nlloc.log"), "w") as log:
+        r = subprocess.run(["NLLoc", control_path], stdout=log, stderr=subprocess.STDOUT)
+    hyps = [h for h in glob.glob(os.path.join(workdir, "*.grid0.loc.hyp")) if ".sum." not in h]
+    if r.returncode != 0 or len(hyps) != 1:
+        print(f"yanll-locate: NLLoc failed (exit {r.returncode}), see {workdir}/nlloc.log", file=sys.stderr)
+        return 3
+
+    result = {k: run[k] for k in ("model", "dimension", "station_corrections", "event_id", "origin_id") if k in run}
+    result.update(y.hyp_to_json(y.parse_hyp(hyps[0])))
+    result["nll"]["control_file"] = control
+    text = json.dumps(result, indent=2) + "\n"
+    if args.output:
+        with open(args.output, "w") as f:
+            f.write(text)
+    else:
+        sys.stdout.write(text)
+    if args.keep:
+        print(f"yanll-locate: work directory kept in {workdir}", file=sys.stderr)
+    else:
+        shutil.rmtree(workdir)
+    return 0 if result["nll"]["status"] == "LOCATED" else 1
+
+
+if __name__ == "__main__":
+    sys.exit(main())

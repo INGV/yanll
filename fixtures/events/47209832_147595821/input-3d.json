@@ -1,0 +1,549 @@
+{
+  "model": "TOMORAMA-2013",
+  "dimension": "3d",
+  "station_corrections": true,
+  "event_id": "47209832",
+  "origin_id": "147595821",
+  "observations": [
+    {
+      "station": "MFNL",
+      "channel": "HHZ",
+      "onset": "?",
+      "phase": "S",
+      "first_motion": "?",
+      "time": "2026-09-20T11:23:41.570000Z",
+      "quality": 4
+    },
+    {
+      "station": "PANI",
+      "channel": "EHZ",
+      "onset": "?",
+      "phase": "S",
+      "first_motion": "?",
+      "time": "2026-09-20T11:23:35.570000Z",
+      "quality": 4
+    },
+    {
+      "station": "EPIT",
+      "channel": "HHZ",
+      "onset": "?",
+      "phase": "S",
+      "first_motion": "?",
+      "time": "2026-09-20T11:23:30.990000Z",
+      "quality": 4
+    },
+    {
+      "station": "IVPL",
+      "channel": "HHZ",
+      "onset": "?",
+      "phase": "S",
+      "first_motion": "?",
+      "time": "2026-09-20T11:23:27.630000Z",
+      "quality": 4
+    },
+    {
+      "station": "PGF",
+      "channel": "BHZ",
+      "onset": "?",
+      "phase": "S",
+      "first_motion": "?",
+      "time": "2026-09-20T11:23:26.500000Z",
+      "quality": 4
+    },
+    {
+      "station": "STAL",
+      "channel": "HHZ",
+      "onset": "?",
+      "phase": "P",
+      "first_motion": "?",
+      "time": "2026-09-20T11:22:59.210000Z",
+      "quality": 4
+    },
+    {
+      "station": "PANI",
+      "channel": "EHZ",
+      "onset": "?",
+      "phase": "P",
+      "first_motion": "?",
+      "time": "2026-09-20T11:22:51.200000Z",
+      "quality": 4
+    },
+    {
+      "station": "CRE",
+      "channel": "HHZ",
+      "onset": "?",
+      "phase": "S",
+      "first_motion": "?",
+      "time": "2026-09-20T11:22:48.940000Z",
+      "quality": 4
+    },
+    {
+      "station": "MUCR",
+      "channel": "HHZ",
+      "onset": "?",
+      "phase": "P",
+      "first_motion": "?",
+      "time": "2026-09-20T11:22:46.800000Z",
+      "quality": 4
+    },
+    {
+      "station": "CSNT",
+      "channel": "HHZ",
+      "onset": "?",
+      "phase": "S",
+      "first_motion": "?",
+      "time": "2026-09-20T11:22:46.900000Z",
+      "quality": 4
+    },
+    {
+      "station": "ZEN8",
+      "channel": "EHZ",
+      "onset": "?",
+      "phase": "P",
+      "first_motion": "?",
+      "time": "2026-09-20T11:22:46.350000Z",
+      "quality": 4
+    },
+    {
+      "station": "CGL1",
+      "channel": "HHZ",
+      "onset": "?",
+      "phase": "P",
+      "first_motion": "?",
+      "time": "2026-09-20T11:22:32.500000Z",
+      "quality": 4
+    },
+    {
+      "station": "COL3",
+      "channel": "HHZ",
+      "onset": "?",
+      "phase": "S",
+      "first_motion": "?",
+      "time": "2026-09-20T11:22:29.740000Z",
+      "quality": 4
+    },
+    {
+      "station": "FDMO",
+      "channel": "HHZ",
+      "onset": "?",
+      "phase": "S",
+      "first_motion": "?",
+      "time": "2026-09-20T11:22:20.450000Z",
+      "quality": 4
+    },
+    {
+      "station": "CSNT",
+      "channel": "HHZ",
+      "onset": "?",
+      "phase": "P",
+      "first_motion": "U",
+      "time": "2026-09-20T11:22:17.720000Z",
+      "quality": 4
+    },
+    {
+      "station": "SLCN",
+      "channel": "HHZ",
+      "onset": "?",
+      "phase": "P",
+      "first_motion": "?",
+      "time": "2026-09-20T11:22:16.220000Z",
+      "quality": 4
+    },
+    {
+      "station": "NRCA",
+      "channel": "HHZ",
+      "onset": "?",
+      "phase": "S",
+      "first_motion": "?",
+      "time": "2026-09-20T11:22:13.460000Z",
+      "quality": 4
+    },
+    {
+      "station": "SMA1",
+      "channel": "EHZ",
+      "onset": "?",
+      "phase": "S",
+      "first_motion": "?",
+      "time": "2026-09-20T11:22:05.450000Z",
+      "quality": 4
+    },
+    {
+      "station": "CERT",
+      "channel": "HHZ",
+      "onset": "?",
+      "phase": "S",
+      "first_motion": "?",
+      "time": "2026-09-20T11:22:04.810000Z",
+      "quality": 4
+    },
+    {
+      "station": "GIUL",
+      "channel": "HHZ",
+      "onset": "?",
+      "phase": "S",
+      "first_motion": "?",
+      "time": "2026-09-20T11:22:01.890000Z",
+      "quality": 2
+    },
+    {
+      "station": "ARRO",
+      "channel": "EHZ",
+      "onset": "?",
+      "phase": "P",
+      "first_motion": "?",
+      "time": "2026-09-20T11:22:01.460000Z",
+      "quality": 4
+    },
+    {
+      "station": "MF5",
+      "channel": "EHZ",
+      "onset": "?",
+      "phase": "P",
+      "first_motion": "?",
+      "time": "2026-09-20T11:22:00.490000Z",
+      "quality": 4
+    },
+    {
+      "station": "CSP1",
+      "channel": "EHZ",
+      "onset": "?",
+      "phase": "P",
+      "first_motion": "D",
+      "time": "2026-09-20T11:22:00.690000Z",
+      "quality": 4
+    },
+    {
+      "station": "NRCA",
+      "channel": "HHZ",
+      "onset": "?",
+      "phase": "P",
+      "first_motion": "D",
+      "time": "2026-09-20T11:21:57.520000Z",
+      "quality": 4
+    },
+    {
+      "station": "CERT",
+      "channel": "HHZ",
+      "onset": "?",
+      "phase": "P",
+      "first_motion": "D",
+      "time": "2026-09-20T11:21:55.340000Z",
+      "quality": 4
+    },
+    {
+      "station": "PTQR",
+      "channel": "HHZ",
+      "onset": "?",
+      "phase": "S",
+      "first_motion": "?",
+      "time": "2026-09-20T11:21:54.550000Z",
+      "quality": 2
+    },
+    {
+      "station": "LRP",
+      "channel": "EHZ",
+      "onset": "?",
+      "phase": "S",
+      "first_motion": "?",
+      "time": "2026-09-20T11:21:54.580000Z",
+      "quality": 2
+    },
+    {
+      "station": "FAGN",
+      "channel": "HHZ",
+      "onset": "?",
+      "phase": "S",
+      "first_motion": "?",
+      "time": "2026-09-20T11:21:52.650000Z",
+      "quality": 2
+    },
+    {
+      "station": "TERO",
+      "channel": "HHZ",
+      "onset": "?",
+      "phase": "P",
+      "first_motion": "D",
+      "time": "2026-09-20T11:21:51.400000Z",
+      "quality": 4
+    },
+    {
+      "station": "MIDA",
+      "channel": "HHZ",
+      "onset": "?",
+      "phase": "S",
+      "first_motion": "?",
+      "time": "2026-09-20T11:21:51.320000Z",
+      "quality": 2
+    },
+    {
+      "station": "PABO",
+      "channel": "HHZ",
+      "onset": "?",
+      "phase": "S",
+      "first_motion": "?",
+      "time": "2026-09-20T11:21:51.830000Z",
+      "quality": 2
+    },
+    {
+      "station": "CERA",
+      "channel": "HHZ",
+      "onset": "?",
+      "phase": "S",
+      "first_motion": "?",
+      "time": "2026-09-20T11:21:51.860000Z",
+      "quality": 2
+    },
+    {
+      "station": "GIUL",
+      "channel": "HHZ",
+      "onset": "?",
+      "phase": "P",
+      "first_motion": "?",
+      "time": "2026-09-20T11:21:50.910000Z",
+      "quality": 1
+    },
+    {
+      "station": "VAGA",
+      "channel": "HHZ",
+      "onset": "?",
+      "phase": "P",
+      "first_motion": "D",
+      "time": "2026-09-20T11:21:49.760000Z",
+      "quality": 4
+    },
+    {
+      "station": "RNI2",
+      "channel": "HHZ",
+      "onset": "?",
+      "phase": "S",
+      "first_motion": "?",
+      "time": "2026-09-20T11:21:49.700000Z",
+      "quality": 2
+    },
+    {
+      "station": "T0110",
+      "channel": "HHZ",
+      "onset": "?",
+      "phase": "S",
+      "first_motion": "?",
+      "time": "2026-09-20T11:21:49.930000Z",
+      "quality": 2
+    },
+    {
+      "station": "VVLD",
+      "channel": "HHZ",
+      "onset": "?",
+      "phase": "S",
+      "first_motion": "?",
+      "time": "2026-09-20T11:21:49.470000Z",
+      "quality": 2
+    },
+    {
+      "station": "H20J",
+      "channel": "EHZ",
+      "onset": "?",
+      "phase": "P",
+      "first_motion": "D",
+      "time": "2026-09-20T11:21:49.580000Z",
+      "quality": 4
+    },
+    {
+      "station": "OPI",
+      "channel": "HGE",
+      "onset": "?",
+      "phase": "S",
+      "first_motion": "?",
+      "time": "2026-09-20T11:21:47.190000Z",
+      "quality": 1
+    },
+    {
+      "station": "VCEL",
+      "channel": "EHZ",
+      "onset": "?",
+      "phase": "P",
+      "first_motion": "?",
+      "time": "2026-09-20T11:21:47.170000Z",
+      "quality": 1
+    },
+    {
+      "station": "PTQR",
+      "channel": "HHZ",
+      "onset": "?",
+      "phase": "P",
+      "first_motion": "?",
+      "time": "2026-09-20T11:21:47.200000Z",
+      "quality": 2
+    },
+    {
+      "station": "LRP",
+      "channel": "EHZ",
+      "onset": "?",
+      "phase": "P",
+      "first_motion": "?",
+      "time": "2026-09-20T11:21:46.850000Z",
+      "quality": 0
+    },
+    {
+      "station": "FAGN",
+      "channel": "HHZ",
+      "onset": "?",
+      "phase": "P",
+      "first_motion": "?",
+      "time": "2026-09-20T11:21:46.690000Z",
+      "quality": 1
+    },
+    {
+      "station": "MIDA",
+      "channel": "HHZ",
+      "onset": "?",
+      "phase": "P",
+      "first_motion": "?",
+      "time": "2026-09-20T11:21:45.640000Z",
+      "quality": 0
+    },
+    {
+      "station": "LPEL",
+      "channel": "HHZ",
+      "onset": "?",
+      "phase": "S",
+      "first_motion": "?",
+      "time": "2026-09-20T11:21:45.030000Z",
+      "quality": 1
+    },
+    {
+      "station": "PABO",
+      "channel": "HHZ",
+      "onset": "?",
+      "phase": "P",
+      "first_motion": "?",
+      "time": "2026-09-20T11:21:45.570000Z",
+      "quality": 2
+    },
+    {
+      "station": "CERA",
+      "channel": "HHZ",
+      "onset": "?",
+      "phase": "P",
+      "first_motion": "?",
+      "time": "2026-09-20T11:21:45.600000Z",
+      "quality": 0
+    },
+    {
+      "station": "T0110",
+      "channel": "HHZ",
+      "onset": "?",
+      "phase": "P",
+      "first_motion": "?",
+      "time": "2026-09-20T11:21:44.740000Z",
+      "quality": 0
+    },
+    {
+      "station": "VVLD",
+      "channel": "HHZ",
+      "onset": "?",
+      "phase": "P",
+      "first_motion": "?",
+      "time": "2026-09-20T11:21:44.530000Z",
+      "quality": 0
+    },
+    {
+      "station": "SULA",
+      "channel": "HNE",
+      "onset": "?",
+      "phase": "S",
+      "first_motion": "?",
+      "time": "2026-09-20T11:21:44.900000Z",
+      "quality": 1
+    },
+    {
+      "station": "RNI2",
+      "channel": "HHZ",
+      "onset": "?",
+      "phase": "P",
+      "first_motion": "?",
+      "time": "2026-09-20T11:21:44.490000Z",
+      "quality": 0
+    },
+    {
+      "station": "SULC",
+      "channel": "HNN",
+      "onset": "?",
+      "phase": "S",
+      "first_motion": "?",
+      "time": "2026-09-20T11:21:44.550000Z",
+      "quality": 1
+    },
+    {
+      "station": "SULP",
+      "channel": "HGZ",
+      "onset": "?",
+      "phase": "S",
+      "first_motion": "?",
+      "time": "2026-09-20T11:21:44.650000Z",
+      "quality": 1
+    },
+    {
+      "station": "INTR",
+      "channel": "HNZ",
+      "onset": "?",
+      "phase": "S",
+      "first_motion": "?",
+      "time": "2026-09-20T11:21:43.590000Z",
+      "quality": 1
+    },
+    {
+      "station": "OPI",
+      "channel": "HGE",
+      "onset": "?",
+      "phase": "P",
+      "first_motion": "?",
+      "time": "2026-09-20T11:21:43.200000Z",
+      "quality": 1
+    },
+    {
+      "station": "SULA",
+      "channel": "HNE",
+      "onset": "?",
+      "phase": "P",
+      "first_motion": "?",
+      "time": "2026-09-20T11:21:41.760000Z",
+      "quality": 0
+    },
+    {
+      "station": "INTR",
+      "channel": "HNZ",
+      "onset": "?",
+      "phase": "P",
+      "first_motion": "?",
+      "time": "2026-09-20T11:21:41.280000Z",
+      "quality": 0
+    },
+    {
+      "station": "SULC",
+      "channel": "HNN",
+      "onset": "?",
+      "phase": "P",
+      "first_motion": "?",
+      "time": "2026-09-20T11:21:41.750000Z",
+      "quality": 0
+    },
+    {
+      "station": "SULP",
+      "channel": "HGZ",
+      "onset": "?",
+      "phase": "P",
+      "first_motion": "?",
+      "time": "2026-09-20T11:21:41.750000Z",
+      "quality": 0
+    },
+    {
+      "station": "LPEL",
+      "channel": "HHZ",
+      "onset": "?",
+      "phase": "P",
+      "first_motion": "?",
+      "time": "2026-09-20T11:21:41.680000Z",
+      "quality": 0
+    }
+  ]
+}

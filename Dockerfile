@@ -37,6 +37,7 @@ COPY reference/production/opt/nll/run/modelli_20211027 /opt/yanll/models_1d
 COPY reference/production/opt/nll/run/corrections_3d /opt/yanll/corrections_3d
 COPY stations/fdsnws-station.txt /opt/yanll/stations/fdsnws-station.txt
 COPY bin/ /opt/yanll/bin/
+COPY tests/ /opt/yanll/tests/
 
 ENV PATH="/opt/yanll/bin:/opt/nll/bin:${PATH}" \
     YANLL_DATA=/data
