@@ -10,12 +10,15 @@ observation file into an input document; `fixtures/events/<run>/input-{1d,3d}.js
 were made with it.
 
 ```
-docker compose run --rm yanll yanll-locate /fixtures/events/47442632_147825511/input-1d.json > out.json
+docker compose run --rm -T yanll yanll-locate /fixtures/events/47442632_147825511/input-1d.json > out.json
 docker compose run --rm -T yanll yanll-locate - < input.json > out.json
 ```
 
-Exit codes: 0 located; 1 NLLoc ran but did not locate (`nll.status` says why);
-2 invalid input (message on stderr); 3 grid generation or NLLoc failure.
+Exit codes: 0 located; 1 NLLoc ran but did not locate (`nll.status` is `REJECTED` or
+`ABORTED` with NLLoc's message, or `NOT_LOCATED` with its warnings when it skipped the
+event, for instance with fewer than 3 phases, and wrote no location: then the document
+has no `origin`, `quality`, `uncertainty` or `phases`); 2 invalid input (message on
+stderr); 3 grid generation or NLLoc failure.
 
 Conventions: times are ISO 8601 UTC with microseconds (`2026-10-04T20:12:29.160000Z`);
 coordinates are decimal degrees, positive north and east; depths, distances and grid
@@ -56,9 +59,9 @@ Each observation:
 | `station` | string, required | station code, 1 to 6 alphanumeric characters; the only key NLLoc uses to find the travel-time grid and the correction (network, location and channel play no part, as in production) |
 | `phase` | string, required | phase label; only its first letter, upper-cased, is written (`Pg` → `P`, `Sn` → `S`), as `02_qml_parser.py` does |
 | `time` | string, required | pick time, ISO 8601 with a UTC designator |
-| `quality` | integer 0 to 4, required | pick class, mapped to seconds by `LOCQUAL2ERR 0.05 0.2 0.45 0.8 99999.9` (class 4 has weight 0). Production derives it from the QuakeML pick uncertainty: 0.1 s → 0, 0.3 → 1, 0.6 → 2, 1.0 → 3, 3.0 → 4 |
+| `quality` | integer 0 to 9, required | pick class, mapped to seconds by `LOCQUAL2ERR 0.05 0.2 0.45 0.8 99999.9`; class 4 and above get the last value, so weight 0. Production derives it from the QuakeML pick uncertainty: 0.1 s → 0, 0.3 → 1, 0.6 → 2, 1.0 → 3, 3.0 → 4, 10.0 → 8 |
 | `channel` | string, optional | channel code, echoed (`?` when absent) |
-| `onset` | `"?"`, `"i"` or `"e"`, optional | onset, echoed (`?` when absent) |
+| `onset` | `"?"`, `"i"`, `"e"`, `"impulsive"` or `"emergent"`, optional | onset, echoed (`?` when absent; production writes the QuakeML word) |
 | `first_motion` | `"?"`, `"U"` or `"D"`, optional | first motion, echoed (`?` when absent) |
 
 There is no starting location: NLLoc searches the whole grid of the model, and
@@ -66,9 +69,9 @@ production never used the INGV epicentre for anything but the choice of the zone
 
 ## Output
 
-The values below are those of the production run of the example event; the container
-reproduces them within the project tolerance (see `docs/comparison-report.md`), not to
-the digit.
+The values below are those of the production run of the example event, except
+`nll.version`, which is the container's; the container reproduces them within the
+project tolerance (see `docs/comparison-report.md`), not to the digit.
 
 ```json
 {

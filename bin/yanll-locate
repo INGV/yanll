@@ -6,8 +6,8 @@ the control file exactly as production does for the chosen model, generates the
 travel-time grids the stations need (yanll-make-grids), runs NLLoc and writes the
 location as a JSON document on stdout. See docs/json-schema.md.
 
-Exit codes: 0 located, 1 NLLoc did not locate (the document still reports its status),
-2 invalid input, 3 grid generation or NLLoc failure.
+Exit codes: 0 located, 1 NLLoc did not locate (the document reports its status and
+message), 2 invalid input, 3 grid generation or NLLoc failure.
 """
 import argparse
 import glob
@@ -73,12 +73,19 @@ def main():
     with open(os.path.join(workdir, "nlloc.log"), "w") as log:
         r = subprocess.run(["NLLoc", control_path], stdout=log, stderr=subprocess.STDOUT)
     hyps = [h for h in glob.glob(os.path.join(workdir, "*.grid0.loc.hyp")) if ".sum." not in h]
-    if r.returncode != 0 or len(hyps) != 1:
+    if r.returncode != 0:
         print(f"yanll-locate: NLLoc failed (exit {r.returncode}), see {workdir}/nlloc.log", file=sys.stderr)
         return 3
 
     result = {k: run[k] for k in ("model", "dimension", "station_corrections", "event_id", "origin_id") if k in run}
-    result.update(y.hyp_to_json(y.parse_hyp(hyps[0])))
+    if hyps:
+        result.update(y.hyp_to_json(y.parse_hyp(hyps[0])))
+    else:
+        # NLLoc skips an event with too few phases without writing a hyp: report its
+        # warnings as the status instead of failing.
+        with open(os.path.join(workdir, "nlloc.log")) as f:
+            warnings = [line.strip() for line in f if line.startswith("WARNING")]
+        result["nll"] = {"version": None, "status": "NOT_LOCATED", "message": " ".join(warnings) or "NLLoc wrote no location"}
     result["nll"]["control_file"] = control
     text = json.dumps(result, indent=2) + "\n"
     if args.output:

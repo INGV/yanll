@@ -52,7 +52,9 @@ rerun the comparison: that is the only way to see what a bump changes.
 ## The data directory
 
 Grids are large and derived, so they live outside the image in the directory that
-`YANLL_DATA` names (`./data` by default, mounted at `/data` in the container):
+`YANLL_DATA` names (`./data` by default, mounted at `/data` in the container). The
+container writes there as root unless `YANLL_USER=uid:gid` is set (the directory must
+then be writable by that user):
 
 ```
 model_1d/<zone>/model.{P,S}.mod.{hdr,buf}   1D model grids, written by Vel2Grid on first use (110 MB per zone)
@@ -103,7 +105,7 @@ between the station coordinates of the two runs.
 ## Locating one event
 
 ```
-docker compose run --rm yanll yanll-locate /fixtures/events/47442632_147825511/input-1d.json > out.json
+docker compose run --rm -T yanll yanll-locate /fixtures/events/47442632_147825511/input-1d.json > out.json
 docker compose run --rm -T yanll yanll-locate - < input.json > out.json
 ```
 
@@ -129,6 +131,5 @@ observation file and the control file written from the fixture inputs are the
 production ones byte for byte, paths aside, for all 21 events in 1D and 3D; the
 committed input documents are what `yanll-obs2json` writes; one 1D location reproduces
 production within tolerance; malformed inputs are rejected). The tests need the image,
-the data directory with the 3D model header, and about 3 minutes of grid generation
-the first time. The comparison of phase 2 is `make compare` (hours of grids the first
+the data directory, and about 3 minutes of grid generation the first time. The comparison of phase 2 is `make compare` (hours of grids the first
 time) and its report is committed in `docs/comparison-report.md`.

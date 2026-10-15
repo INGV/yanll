@@ -8,8 +8,9 @@
 #
 # Usage: yanll-make-grids <model> <station>...
 #   <model>   a zone nickname (model_<nickname>.in in /opt/yanll/models_1d) or TOMORAMA-2013
-#   <station> station codes; coordinates come from the fdsnws snapshot, every match of a
-#             code is used and the last one wins, as in production
+#   <station> station codes; coordinates come from the fdsnws snapshot. A code with
+#             several matches is handled as in production: in 1D every match is run and
+#             the last one wins, in 3D only the first is run
 set -euo pipefail
 
 readonly DATA="${YANLL_DATA:-/data}"
@@ -60,7 +61,7 @@ make_1d() {
     # Zone origin from the centre table (last two columns), first layer depth from the
     # model: the same reads Auto_Create_Model_Grid_NewZones.sh does.
     read -r LAT0 LON0 <<< "$(awk -v NICK="${ZONE}" 'NR > 1 && ($5 "_" $3) == NICK {print $NF, $(NF-1)}' "${CENTRES}")"
-    MINDEP=$(grep -v '#' "${MODELIN}" | awk '{print $2}' | head -n1)
+    MINDEP=$(awk '!/#/ {print $2; exit}' "${MODELIN}")
     # Production invocation: steps 0.1,0.1 km, 600 km across, down to 110 km.
     local VGGRID="VGGRID 2 6001 1141 0.0 0.0 ${MINDEP}  0.1 0.1 0.1 SLOW_LEN"
     mkdir -p "${MODELDIR}" "${TIMEDIR}"
@@ -121,14 +122,20 @@ make_3d() {
     # cascading decimation at 20, 40 and 100 km that production reads through symlinks;
     # here the decimated grid takes the final name directly and the full one is deleted.
     # P and S run side by side: Grid2Time is single-threaded and takes minutes per
-    # grid on the full model.
+    # grid on the full model. Each job is waited for by PID: a bare `wait` would hide
+    # a failed Grid2Time and leave the station without a grid.
+    local -a PIDS
     while read -r LINE; do
         STA=$(awk '{print $2}' <<< "${LINE}")
+        PIDS=()
         for PHASE in P S; do
             make_3d_grid "${STA}" "${PHASE}" "${LINE}" "${MODELDIR}" "${TIMEDIR}" "${TMP}" &
+            PIDS+=("$!")
         done
-        wait
-    done < <(gtsrce_lines "${MISSING[@]}")
+        for PID in "${PIDS[@]}"; do
+            wait "${PID}" || { echo "yanll-make-grids: 3D grid of ${STA} failed, see ${TMP}/grid2time_*.log" >&2; exit 1; }
+        done
+    done < <(gtsrce_lines "${MISSING[@]}" | awk '!seen[$2]++')
 }
 
 make_3d_grid() {

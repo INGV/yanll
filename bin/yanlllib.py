@@ -79,8 +79,8 @@ def validate_input(doc):
     if doc["station_corrections"] and dim == "1d" and not os.path.exists(CORRECTIONS_1D.format(zone=model)):
         raise InputError(f"no station corrections exist for zone {model}: set station_corrections to false")
     for key in ("event_id", "origin_id"):
-        if key in doc and not re.fullmatch(r"[A-Za-z0-9-]+", str(doc[key])):
-            raise InputError(f"{key} must be alphanumeric")
+        if key in doc and not (isinstance(doc[key], str) and re.fullmatch(r"[A-Za-z0-9-]+", doc[key])):
+            raise InputError(f"{key} must be an alphanumeric string")
     obs = doc["observations"]
     if not isinstance(obs, list) or not obs:
         raise InputError("observations must be a non-empty list")
@@ -98,9 +98,9 @@ def validate_input(doc):
             raise InputError(f"observation {i}: station must be 1 to 6 alphanumeric characters")
         if not isinstance(o["phase"], str) or not o["phase"]:
             raise InputError(f"observation {i}: phase must be a non-empty string")
-        if not isinstance(o["quality"], int) or isinstance(o["quality"], bool) or not 0 <= o["quality"] <= 4:
-            raise InputError(f"observation {i}: quality must be an integer from 0 to 4")
-        for key, allowed in (("onset", {"?", "i", "e"}), ("first_motion", {"?", "U", "D"})):
+        if not isinstance(o["quality"], int) or isinstance(o["quality"], bool) or not 0 <= o["quality"] <= 9:
+            raise InputError(f"observation {i}: quality must be an integer from 0 to 9")
+        for key, allowed in (("onset", {"?", "i", "e", "impulsive", "emergent"}), ("first_motion", {"?", "U", "D"})):
             if o.get(key, "?") not in allowed:
                 raise InputError(f"observation {i}: {key} must be one of {', '.join(sorted(allowed))}")
         if not isinstance(o.get("channel", "?"), str) or " " in o.get("channel", "?"):

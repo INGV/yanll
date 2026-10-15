@@ -1,10 +1,13 @@
 # Local runs. YANLL_DATA is the host directory that holds the model grids, the travel-time
-# grids and the 3D model body (./data by default, a few GB per zone in use).
+# grids and the 3D model body (./data by default, a few GB per zone in use). Files under
+# it are written by the container's user: root unless YANLL_USER is set to uid:gid.
 services:
   yanll:
     build: .
     image: yanll:latest
+    user: ${YANLL_USER:-0:0}
     volumes:
       - ${YANLL_DATA:-./data}:/data
       - ./fixtures:/fixtures:ro
+      - ./reference:/reference:ro
       - ./docs:/docs
