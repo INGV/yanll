@@ -1,0 +1,147 @@
+#!/usr/bin/env bash
+# Generate what a location needs under ${YANLL_DATA}: the model grid of a 1D zone
+# (Vel2Grid, once per zone) and the travel-time grids of the stations that do not have
+# one yet (Grid2Time, one per station and phase; in 3D followed by
+# GridCascadingDecimate). This is what Auto_Create_Model_Grid_NewZones.sh,
+# 03_test_stations_3d.sh and run_casc_grid.sh do in production, with the same control
+# files except ANGLES_NO: production writes angle grids and never reads them.
+#
+# Usage: yanll-make-grids <model> <station>...
+#   <model>   a zone nickname (model_<nickname>.in in /opt/yanll/models_1d) or TOMORAMA-2013
+#   <station> station codes; coordinates come from the fdsnws snapshot, every match of a
+#             code is used and the last one wins, as in production
+set -euo pipefail
+
+readonly DATA="${YANLL_DATA:-/data}"
+readonly MODELS_1D="/opt/yanll/models_1d"
+readonly STATIONS="/opt/yanll/stations/fdsnws-station.txt"
+readonly MODEL_3D="TOMORAMA-2013"
+
+if [[ $# -lt 2 ]]; then
+    echo "Usage: $0 <model> <station>..." >&2
+    exit 2
+fi
+MODEL="$1"
+shift
+
+# Station lines in NLL GTSRCE form, same printf as 03_test_stations_3d.sh. A station
+# absent from the snapshot is reported and skipped: NLLoc then gives its phases weight
+# 0, which is what production does when the web service has no match.
+gtsrce_lines() {
+    local STA
+    for STA in "$@"; do
+        if ! awk -F'|' -v S="${STA}" '!/^#/ && $2 == S {found=1; printf "GTSRCE %-5s LATLON %8.5f %8.5f 0.0 %5.3f\n", $2, $3, $4, $5/1000} END {exit !found}' "${STATIONS}"; then
+            echo "yanll-make-grids: station ${STA} not in ${STATIONS}, skipped" >&2
+        fi
+    done
+}
+
+# Stations of the list that lack a P or an S time grid in ${1}.
+missing_stations() {
+    local TIMEDIR="$1"
+    shift
+    local STA
+    for STA in "$@"; do
+        if [[ ! -s "${TIMEDIR}/time.P.${STA}.time.buf" || ! -s "${TIMEDIR}/time.S.${STA}.time.buf" ]]; then
+            echo "${STA}"
+        fi
+    done | sort -u
+}
+
+make_1d() {
+    local ZONE="$1"
+    shift
+    local MODELIN="${MODELS_1D}/model_${ZONE}.in"
+    local CENTRES="${MODELS_1D}/centri_20211027.lst"
+    local MODELDIR="${DATA}/model_1d/${ZONE}"
+    local TIMEDIR="${DATA}/time_1d/${ZONE}"
+    local LAT0 LON0 MINDEP PHASE
+    [[ -s "${MODELIN}" ]] || { echo "yanll-make-grids: unknown zone ${ZONE}" >&2; exit 2; }
+    # Zone origin from the centre table (last two columns), first layer depth from the
+    # model: the same reads Auto_Create_Model_Grid_NewZones.sh does.
+    read -r LAT0 LON0 <<< "$(awk -v NICK="${ZONE}" 'NR > 1 && ($5 "_" $3) == NICK {print $NF, $(NF-1)}' "${CENTRES}")"
+    MINDEP=$(grep -v '#' "${MODELIN}" | awk '{print $2}' | head -n1)
+    # Production invocation: steps 0.1,0.1 km, 600 km across, down to 110 km.
+    local VGGRID="VGGRID 2 6001 1141 0.0 0.0 ${MINDEP}  0.1 0.1 0.1 SLOW_LEN"
+    mkdir -p "${MODELDIR}" "${TIMEDIR}"
+
+    if [[ ! -s "${MODELDIR}/model.P.mod.buf" || ! -s "${MODELDIR}/model.S.mod.buf" ]]; then
+        for PHASE in P S; do
+            cat > "${MODELDIR}/vel2grid_${PHASE}.in" <<CTRL
+CONTROL 2 123456
+TRANS SIMPLE ${LAT0} ${LON0} 0.0
+VGOUT  ${MODELDIR}/model
+VGTYPE ${PHASE}
+${VGGRID}
+INCLUDE ${MODELIN}
+GTMODE GRID2D ANGLES_NO
+CTRL
+            Vel2Grid "${MODELDIR}/vel2grid_${PHASE}.in"
+        done
+    fi
+
+    local -a MISSING
+    mapfile -t MISSING < <(missing_stations "${TIMEDIR}" "$@")
+    [[ ${#MISSING[@]} -gt 0 ]] || return 0
+    local SRCFILE="${TIMEDIR}/stations.$$.in"
+    gtsrce_lines "${MISSING[@]}" > "${SRCFILE}"
+    [[ -s "${SRCFILE}" ]] || { rm -f "${SRCFILE}"; return 0; }
+    for PHASE in P S; do
+        cat > "${TIMEDIR}/grid2time_${PHASE}.in" <<CTRL
+CONTROL 2 123456
+TRANS SIMPLE ${LAT0} ${LON0} 0.0
+VGTYPE ${PHASE}
+${VGGRID}
+GTFILES ${MODELDIR}/model ${TIMEDIR}/time ${PHASE}
+GTMODE GRID2D ANGLES_NO
+INCLUDE ${SRCFILE}
+GT_PLFD  1.0e-3  0
+CTRL
+        Grid2Time "${TIMEDIR}/grid2time_${PHASE}.in"
+    done
+    rm -f "${SRCFILE}"
+}
+
+make_3d() {
+    local MODELDIR="${DATA}/model_3d"
+    local TIMEDIR="${DATA}/time_3d/${MODEL_3D}"
+    local TMP="${TIMEDIR}/tmp"
+    local PHASE STA LINE
+    for PHASE in P S; do
+        if [[ ! -s "${MODELDIR}/model.${PHASE}.mod.buf" || ! -s "${MODELDIR}/model.${PHASE}.mod.hdr" ]]; then
+            echo "yanll-make-grids: ${MODELDIR}/model.${PHASE}.mod.{hdr,buf} missing: copy the TOMORAMA_zmax800_deep files there (see README.md)" >&2
+            exit 2
+        fi
+    done
+    mkdir -p "${TIMEDIR}" "${TMP}/casc"
+    local -a MISSING
+    mapfile -t MISSING < <(missing_stations "${TIMEDIR}" "$@")
+    [[ ${#MISSING[@]} -gt 0 ]] || return 0
+    # One Grid2Time per station line and phase on the full 624x602x403 grid, then the
+    # cascading decimation at 20, 40 and 100 km that production reads through symlinks;
+    # here the decimated grid takes the final name directly and the full one is deleted.
+    while read -r LINE; do
+        STA=$(awk '{print $2}' <<< "${LINE}")
+        for PHASE in P S; do
+            cat > "${TMP}/grid2time_${PHASE}.in" <<CTRL
+CONTROL 1 54321
+TRANS TRANS_MERC WGS-84  0.0 15.0  0.0
+GTMODE GRID3D ANGLES_NO
+GT_PLFD  1.0e-3  0
+${LINE}
+GTFILES  ${MODELDIR}/model  ${TMP}/time   ${PHASE}
+CTRL
+            Grid2Time "${TMP}/grid2time_${PHASE}.in"
+            GridCascadingDecimate 20,40,100 "${TMP}/time.${PHASE}.${STA}.time.buf" "${TMP}/casc/"
+            mv "${TMP}/casc/casc.time.${PHASE}.${STA}.time.hdr" "${TIMEDIR}/time.${PHASE}.${STA}.time.hdr"
+            mv "${TMP}/casc/casc.time.${PHASE}.${STA}.time.buf" "${TIMEDIR}/time.${PHASE}.${STA}.time.buf"
+            rm -f "${TMP}/time.${PHASE}.${STA}.time."*
+        done
+    done < <(gtsrce_lines "${MISSING[@]}")
+}
+
+if [[ "${MODEL}" == "${MODEL_3D}" ]]; then
+    make_3d "$@"
+else
+    make_1d "${MODEL}" "$@"
+fi
