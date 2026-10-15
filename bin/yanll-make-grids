@@ -120,10 +120,20 @@ make_3d() {
     # One Grid2Time per station line and phase on the full 624x602x403 grid, then the
     # cascading decimation at 20, 40 and 100 km that production reads through symlinks;
     # here the decimated grid takes the final name directly and the full one is deleted.
+    # P and S run side by side: Grid2Time is single-threaded and takes minutes per
+    # grid on the full model.
     while read -r LINE; do
         STA=$(awk '{print $2}' <<< "${LINE}")
         for PHASE in P S; do
-            cat > "${TMP}/grid2time_${PHASE}.in" <<CTRL
+            make_3d_grid "${STA}" "${PHASE}" "${LINE}" "${MODELDIR}" "${TIMEDIR}" "${TMP}" &
+        done
+        wait
+    done < <(gtsrce_lines "${MISSING[@]}")
+}
+
+make_3d_grid() {
+    local STA="$1" PHASE="$2" LINE="$3" MODELDIR="$4" TIMEDIR="$5" TMP="$6"
+    cat > "${TMP}/grid2time_${PHASE}.in" <<CTRL
 CONTROL 1 54321
 TRANS TRANS_MERC WGS-84  0.0 15.0  0.0
 GTMODE GRID3D ANGLES_NO
@@ -131,13 +141,12 @@ GT_PLFD  1.0e-3  0
 ${LINE}
 GTFILES  ${MODELDIR}/model  ${TMP}/time   ${PHASE}
 CTRL
-            Grid2Time "${TMP}/grid2time_${PHASE}.in"
-            GridCascadingDecimate 20,40,100 "${TMP}/time.${PHASE}.${STA}.time.buf" "${TMP}/casc/"
-            mv "${TMP}/casc/casc.time.${PHASE}.${STA}.time.hdr" "${TIMEDIR}/time.${PHASE}.${STA}.time.hdr"
-            mv "${TMP}/casc/casc.time.${PHASE}.${STA}.time.buf" "${TIMEDIR}/time.${PHASE}.${STA}.time.buf"
-            rm -f "${TMP}/time.${PHASE}.${STA}.time."*
-        done
-    done < <(gtsrce_lines "${MISSING[@]}")
+    Grid2Time "${TMP}/grid2time_${PHASE}.in" > "${TMP}/grid2time_${PHASE}.log" 2>&1
+    GridCascadingDecimate 20,40,100 "${TMP}/time.${PHASE}.${STA}.time.buf" "${TMP}/casc/" >> "${TMP}/grid2time_${PHASE}.log" 2>&1
+    mv "${TMP}/casc/casc.time.${PHASE}.${STA}.time.hdr" "${TIMEDIR}/time.${PHASE}.${STA}.time.hdr"
+    mv "${TMP}/casc/casc.time.${PHASE}.${STA}.time.buf" "${TIMEDIR}/time.${PHASE}.${STA}.time.buf"
+    rm -f "${TMP}/time.${PHASE}.${STA}.time."*
+    echo "3D grid ${PHASE} ${STA} done"
 }
 
 if [[ "${MODEL}" == "${MODEL_3D}" ]]; then

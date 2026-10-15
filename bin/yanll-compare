@@ -140,6 +140,7 @@ def main():
     ap.add_argument("--data", default=os.environ.get("YANLL_DATA", "/data"))
     ap.add_argument("--report", default="/docs/comparison-report.md")
     ap.add_argument("--all-stations", action="store_true", help="add a 3D row with grids for every station")
+    ap.add_argument("--dims", default="1d,3d", help="which of 1d,3d to run (default both)")
     ap.add_argument("events", nargs="*", help="runs to compare (default: all)")
     args = ap.parse_args()
 
@@ -155,6 +156,7 @@ def main():
         plans = [("1d", prod1, obs_stations(obs)), ("3d", prod3, sorted(prod3["with_grid"]))]
         if args.all_stations:
             plans.append(("3d-all", prod3, obs_stations(obs)))
+        plans = [p for p in plans if p[0].split("-")[0] in args.dims.split(",")]
         for dim, prod, stations in plans:
             print(f"{run} {zone} {dim}: {len(stations)} stations", flush=True)
             cont = locate(event_dir, run, dim, args.data, stations)
