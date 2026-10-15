@@ -1,0 +1,18 @@
+NLLOC "/opt/nll/loc_1d/47425052_147749401/47425052_147749401.20260930.025855.grid0" "LOCATED" "Location completed."
+SIGNATURE "INGV - Istituto Nazionale di Geofisica e Vulcanologia   obs:/opt/nll/obs/47425052_147749401_version_100.phsnll   NLLoc:v7.00.00(27Oct2017)  run:30Sep2026 03h10m39"
+COMMENT "INGV-1D (NonLinLoc Location)"
+GRID  801 681 225  -200 -170 -3  0.5 0.5 0.5 PROB_DENSITY
+SEARCH OCTREE nInitial 4000 nEvaluated 20000 smallestNodeSide 0.078125/0.066406/0.043945 oct_tree_integral 2.006884e+00 scatter_volume 1.994547e+00
+HYPOCENTER  x -25.8984 y -7.73633 z 3.92139  OT 53.891  ix -1 iy -1 iz -1 MAXIMUM_LIKELIHOOD
+GEOGRAPHIC  OT 2026 09 30  02 58 53.890983  Lat 46.280373 Long 12.962747 Depth 3.921387
+QUALITY  Pmax 4.17522e+99 MFmin 33.8941 MFmax 34.0818 RMS 0.117102 Nphs 33 Gap 63.6056 Dist 4.78952 Mamp -9.90 0 Mdur -9.90 0
+VPVSRATIO  VpVsRatio 1.84895  Npair 16  Diff 18.7
+STATISTICS  ExpectX -25.8984 Y -7.71968 Z 3.69858  CovXX 0.125646 XY -0.0220559 XZ -0.0274712 YY 0.292741 YZ -0.42241 ZZ 1.4258 EllAz1  58.8617 Dip1  10.3914 Len1  0.612958 Az2  326.054 Dip2  14.9574 Len2  0.778194 Len3  2.351312e+00
+STAT_GEOG  ExpectLat 46.280523 Long 12.962746 Depth 3.698577
+TRANSFORM  SIMPLE LatOrig 46.350000  LongOrig 13.300000  RotCW 0.000000
+QML_OriginQuality  assocPhCt 44  usedPhCt 33  assocStaCt -1  usedStaCt 19  depthPhCt -1  stdErr 0.117102  azGap 63.6056  secAzGap 63.6056  gtLevel -  minDist 4.78952 maxDist 73.6648 medDist 30.49
+QML_OriginUncertainty  horUnc -1  minHorUnc 0.531416  maxHorUnc 0.824552  azMaxHorUnc 172.606
+QML_ConfidenceEllipsoid  semiMajorAxisLength 2.35131  semiMinorAxisLength 0.612958  semiIntermediateAxisLength 0.778194  majorAxisPlunge -71.6464  majorAxisAzimuth 2.41771  majorAxisRotation 318.921
+FOCALMECH  Hyp  46.280373 12.962747 3.921387 Mech  0 0 0 mf  0 nObs 0
+END_NLLOC
+
