@@ -15,7 +15,7 @@ Work proceeds in three phases, each usable on its own:
 2. Docker images with NLL built from source at a pinned commit and the scripts that
    generate the station travel-time grids (Vel2Grid, Grid2Time) for the 17 regional 1D
    models and the TOMORAMA-2013 3D model, plus a scripted comparison of the container's
-   locations against production. In progress.
+   locations against production. In progress: the comparison runs on `nll-dev`.
 3. A command-line tool that reads one JSON document (observations, model, 1D or 3D,
    station corrections, ...) and writes one JSON document with the location. Planned.
 
@@ -24,10 +24,78 @@ Work proceeds in three phases, each usable on its own:
 | Path | Content |
 |---|---|
 | `docs/production-flow.md` | how a location is computed on the production host, inputs, control files, outputs, how to reproduce one by hand |
+| `docs/comparison-report.md` | the container's locations against production for the fixture events, written by `yanll-compare` |
 | `reference/production/` | read-only copies of the production scripts, models, corrections, control files and NLL 7.00.00 sources, paths mirrored, secrets removed (`reference/production/README.md`) |
 | `fixtures/events/` | 21 recent production runs (observations, 1D and 3D `.hyp`) used as oracles for the comparison (`fixtures/events/README.md`) |
-| `scripts/` | verification scripts |
+| `stations/fdsnws-station.txt` | snapshot of the INGV station list the grids are generated from (`scripts/fetch-stations.sh` refreshes it) |
+| `Dockerfile`, `compose.yaml` | the image: NLL built from upstream at a pinned commit, the production model inputs, the scripts below |
+| `bin/` | scripts shipped in the image: `yanll-make-grids` (model and travel-time grids), `yanll-compare` (comparison with production) |
+| `scripts/` | host-side scripts: verification, station snapshot refresh |
 | `Makefile` | `make check` runs every verification available so far |
+
+## Building the image
+
+```
+docker compose build
+```
+
+The build clones https://github.com/ut-beg-texnet/NonLinLoc at the commit pinned in the
+`Dockerfile` (`NLL_COMMIT`), compiles it with CMake on `debian:bookworm-slim` and copies
+`NLLoc`, `Vel2Grid`, `Grid2Time` and `GridCascadingDecimate` into the runtime image
+together with the 17 regional 1D models, the station corrections and the station
+snapshot. The image is about 120 MB. Bump the commit on purpose, in its own commit, and
+rerun the comparison: that is the only way to see what a bump changes.
+
+## The data directory
+
+Grids are large and derived, so they live outside the image in the directory that
+`YANLL_DATA` names (`./data` by default, mounted at `/data` in the container):
+
+```
+model_1d/<zone>/model.{P,S}.mod.{hdr,buf}   1D model grids, written by Vel2Grid on first use (110 MB per zone)
+model_3d/model.{P,S}.mod.{hdr,buf}          the TOMORAMA-2013 3D model, to be put there by hand
+time_1d/<zone>/time.{P,S}.<STA>.time.*      1D travel-time grids, 55 MB each, about 1.5 s each to generate
+time_3d/TOMORAMA-2013/time.{P,S}.<STA>.time.*   3D cascading grids, 22 MB each, about 2 min 15 s each (P and S run side by side)
+compare/<run>/<dim>/                        work directories of yanll-compare
+```
+
+The 3D model is the pair `TOMORAMA_zmax800_deep.{P,S}.mod.{hdr,buf}` of the production
+host (`/opt/nll/model_TOMORAMA-2013/`, 605 MB per `.buf`, checksums in
+`docs/production-flow.md` section 2.2), copied as `model_3d/model.{P,S}.mod.{hdr,buf}`.
+Without it only 1D locations work. On `nll-dev` the pair is in
+`/home/sysop/yanll-data/model_3d/`.
+
+## Generating grids
+
+```
+docker compose run --rm yanll yanll-make-grids <model> <station>...
+```
+
+`<model>` is a zone nickname (`Fascia-Appenninica_5b`, ..., see
+`docs/production-flow.md` section 2.1) or `TOMORAMA-2013`. The script writes the model
+grid of the zone if missing and a travel-time grid for every listed station that has
+none yet, with the production control files (`ANGLES_NO`: production writes angle
+grids and never reads them). Station coordinates come from the snapshot; a station
+missing from it is reported and skipped, and its phases get weight 0 in the location,
+as in production. The full production set (17 zones, about 800 stations each, plus
+1100 stations in 3D) would take about 1.5 TB and days of CPU: generate what the events
+at hand need.
+
+## Comparing with production
+
+```
+docker compose run --rm yanll yanll-compare            # all fixture events, writes docs/comparison-report.md
+docker compose run --rm yanll yanll-compare --dims 1d 47442632_147825511
+```
+
+For every run under `fixtures/events/` the production control file is reused with its
+paths rewritten, the grids are generated for the stations of the observation file (3D:
+for the stations that had a grid in production, so that both locations see the same
+phases), NLLoc runs, and the maximum-likelihood hypocentres are compared: 1 km in
+epicentre, 2 km in depth, 0.5 s in origin time. `--all-stations` adds an informative 3D
+row per event with grids for every station. The report lists, per event and dimension,
+both locations, the differences, the number of phases used and the largest offset
+between the station coordinates of the two runs.
 
 ## Checking
 
@@ -37,4 +105,4 @@ make check
 
 Phase 1 is checked by `scripts/check-reference.sh`: every script and file named in
 `docs/production-flow.md` must exist under `reference/production/` or `fixtures/`, and
-no copied file may hold a credential.
+no copied file may hold a credential. Phase 2 is checked by the comparison report.
