@@ -16,8 +16,9 @@ Work proceeds in three phases, each usable on its own:
    generate the station travel-time grids (Vel2Grid, Grid2Time) for the 17 regional 1D
    models and the TOMORAMA-2013 3D model, plus a scripted comparison of the container's
    locations against production. In progress: the comparison runs on `nll-dev`.
-3. A command-line tool that reads one JSON document (observations, model, 1D or 3D,
-   station corrections, ...) and writes one JSON document with the location. Planned.
+3. A command-line tool, `yanll-locate`, that reads one JSON document (observations,
+   model, 1D or 3D, station corrections) and writes one JSON document with the
+   location. Done: schemas in `docs/json-schema.md`, tests in `make check`.
 
 ## Layout
 
@@ -25,11 +26,13 @@ Work proceeds in three phases, each usable on its own:
 |---|---|
 | `docs/production-flow.md` | how a location is computed on the production host, inputs, control files, outputs, how to reproduce one by hand |
 | `docs/comparison-report.md` | the container's locations against production for the fixture events, written by `yanll-compare` |
+| `docs/json-schema.md` | input and output documents of `yanll-locate` |
 | `reference/production/` | read-only copies of the production scripts, models, corrections, control files and NLL 7.00.00 sources, paths mirrored, secrets removed (`reference/production/README.md`) |
-| `fixtures/events/` | 21 recent production runs (observations, 1D and 3D `.hyp`) used as oracles for the comparison (`fixtures/events/README.md`) |
+| `fixtures/events/` | 21 recent production runs (observations, 1D and 3D `.hyp`, and the same observations as `input-{1d,3d}.json`) used as oracles (`fixtures/events/README.md`) |
 | `stations/fdsnws-station.txt` | snapshot of the INGV station list the grids are generated from (`scripts/fetch-stations.sh` refreshes it) |
 | `Dockerfile`, `compose.yaml` | the image: NLL built from upstream at a pinned commit, the production model inputs, the scripts below |
-| `bin/` | scripts shipped in the image: `yanll-make-grids` (model and travel-time grids), `yanll-compare` (comparison with production) |
+| `bin/` | scripts shipped in the image: `yanll-locate` (JSON in, JSON out), `yanll-obs2json` (production observation file to input JSON), `yanll-make-grids` (model and travel-time grids), `yanll-compare` (comparison with production) |
+| `tests/` | JSON I/O tests, run inside the image by `make check` |
 | `scripts/` | host-side scripts: verification, station snapshot refresh |
 | `Makefile` | `make check` runs every verification available so far |
 
@@ -97,12 +100,35 @@ row per event with grids for every station. The report lists, per event and dime
 both locations, the differences, the number of phases used and the largest offset
 between the station coordinates of the two runs.
 
+## Locating one event
+
+```
+docker compose run --rm yanll yanll-locate /fixtures/events/47442632_147825511/input-1d.json > out.json
+docker compose run --rm -T yanll yanll-locate - < input.json > out.json
+```
+
+The input names the model (a zone or `TOMORAMA-2013`), the dimension, whether to
+apply the station corrections, and the arrivals; the output carries the
+maximum-likelihood hypocentre, the expectation, the quality and uncertainty blocks of
+the `.hyp`, one entry per phase and the control file that was run. Both documents are
+described in `docs/json-schema.md`. The tool generates the grids the stations need on
+the fly (seconds in 1D, minutes per new station in 3D) and keeps nothing unless
+`--keep`. A production observation file becomes an input document with
+`yanll-obs2json --model <model> --dimension <1d|3d> <file>`.
+
 ## Checking
 
 ```
 make check
 ```
 
-Phase 1 is checked by `scripts/check-reference.sh`: every script and file named in
-`docs/production-flow.md` must exist under `reference/production/` or `fixtures/`, and
-no copied file may hold a credential. Phase 2 is checked by the comparison report.
+Runs `scripts/check-reference.sh` (phase 1: every script and file named in
+`docs/production-flow.md` exists under `reference/production/` or `fixtures/`, no copied
+file holds a credential) and the JSON I/O tests inside the image (phase 3: the
+observation file and the control file written from the fixture inputs are the
+production ones byte for byte, paths aside, for all 21 events in 1D and 3D; the
+committed input documents are what `yanll-obs2json` writes; one 1D location reproduces
+production within tolerance; malformed inputs are rejected). The tests need the image,
+the data directory with the 3D model header, and about 3 minutes of grid generation
+the first time. The comparison of phase 2 is `make compare` (hours of grids the first
+time) and its report is committed in `docs/comparison-report.md`.

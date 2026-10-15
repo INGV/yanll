@@ -30,7 +30,11 @@ def main():
     args = ap.parse_args()
 
     try:
-        doc = json.load(sys.stdin if args.input == "-" else open(args.input))
+        if args.input == "-":
+            doc = json.load(sys.stdin)
+        else:
+            with open(args.input) as f:
+                doc = json.load(f)
         run = y.validate_input(doc)
     except (json.JSONDecodeError, OSError) as e:
         print(f"yanll-locate: cannot read input: {e}", file=sys.stderr)

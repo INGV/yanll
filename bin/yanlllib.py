@@ -135,15 +135,16 @@ def write_obs(observations, path):
 def read_obs(path):
     """The observations of a production NLLOC_OBS file, as the JSON input carries them."""
     out = []
-    for line in open(path):
-        if line.startswith("#") or not line.strip():
-            continue
-        f = line.split()
-        if f[9] != "QUAL":
-            raise InputError(f"{path}: only QUAL error type is supported, got {f[9]}")
-        t = dt.datetime.strptime(f[6] + f[7], "%Y%m%d%H%M") + dt.timedelta(seconds=float(f[8]))
-        out.append({"station": f[0], "channel": f[2], "onset": f[3], "phase": f[4], "first_motion": f[5],
-                    "time": time_to_iso(t), "quality": int(f[10])})
+    with open(path) as fin:
+        for line in fin:
+            if line.startswith("#") or not line.strip():
+                continue
+            f = line.split()
+            if f[9] != "QUAL":
+                raise InputError(f"{path}: only QUAL error type is supported, got {f[9]}")
+            t = dt.datetime.strptime(f[6] + f[7], "%Y%m%d%H%M") + dt.timedelta(seconds=float(f[8]))
+            out.append({"station": f[0], "channel": f[2], "onset": f[3], "phase": f[4], "first_motion": f[5],
+                        "time": time_to_iso(t), "quality": int(f[10])})
     return out
 
 
@@ -158,17 +159,19 @@ def awk_num(x):
 
 def zone_centre(zone):
     """lat0, lon0 and the half extents (km) of the location grid from centri_20211027.lst."""
-    for line in open(os.path.join(MODELS_1D_DIR, "centri_20211027.lst")):
-        f = line.split()
-        if len(f) > 11 and f"{f[4]}_{f[2]}" == zone:
-            return float(f[11]), float(f[10]), float(f[8]), float(f[9])
+    with open(os.path.join(MODELS_1D_DIR, "centri_20211027.lst")) as fin:
+        for line in fin:
+            f = line.split()
+            if len(f) > 11 and f"{f[4]}_{f[2]}" == zone:
+                return float(f[11]), float(f[10]), float(f[8]), float(f[9])
     raise InputError(f"zone {zone} not in centri_20211027.lst")
 
 
 def model_min_depth(zone):
-    for line in open(os.path.join(MODELS_1D_DIR, f"model_{zone}.in")):
-        if not line.startswith("#"):
-            return float(line.split()[1])
+    with open(os.path.join(MODELS_1D_DIR, f"model_{zone}.in")) as fin:
+        for line in fin:
+            if not line.startswith("#"):
+                return float(line.split()[1])
 
 
 def locgrid_1d(zone):
@@ -216,7 +219,8 @@ def control_1d(zone, obs_path, time_root, out_root, corrections):
 
 def control_3d(obs_path, time_root, out_root, corrections, model_hdr):
     # The grid is the whole model grid as its header states it, with Z0 forced to -4.
-    f = open(model_hdr).readline().split()
+    with open(model_hdr) as fin:
+        f = fin.readline().split()
     grid = " ".join(f[0:5] + ["-4"] + f[6:9])
     include = ("" if corrections else "#") + "INCLUDE " + CORRECTIONS_3D
     lines = [
@@ -253,7 +257,9 @@ def _pairs(fields):
 def parse_hyp(path):
     """The blocks of a .grid0.loc.hyp, keyed by block name, plus the PHASE lines."""
     blocks, phases, in_phases = {}, [], False
-    for line in open(path):
+    with open(path) as fin:
+        lines = fin.readlines()
+    for line in lines:
         f = line.split()
         if not f:
             continue

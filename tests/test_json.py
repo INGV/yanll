@@ -57,7 +57,8 @@ class ObservationFile(unittest.TestCase):
                        "observations": y.read_obs(obs)}
                 clean = y.validate_input(doc)
                 text = y.OBS_HEADER + "".join(y.obs_line(o) for o in clean["observations"])
-                self.assertEqual(text, open(obs).read())
+                with open(obs) as f:
+                    self.assertEqual(text, f.read())
 
 
 class InputFixtures(unittest.TestCase):
@@ -77,7 +78,8 @@ class ControlFile(unittest.TestCase):
             with self.subTest(run=run):
                 prod = glob.glob(os.path.join(FIXTURES, run, "loc_1d", "*_loc.in"))[0]
                 mine = y.control_1d(zone_of(run), "obs", "time", "out", True)
-                self.assertEqual(normalized(mine), normalized(open(prod).read()))
+                with open(prod) as f:
+                    self.assertEqual(normalized(mine), normalized(f.read()))
 
     def test_3d_matches_production(self):
         hdr = os.path.join(y.DATA, "model_3d", "model.P.mod.hdr")
@@ -86,7 +88,8 @@ class ControlFile(unittest.TestCase):
             with self.subTest(run=run):
                 prod = glob.glob(os.path.join(FIXTURES, run, "loc_3d", "*_loc.in"))[0]
                 mine = y.control_3d("obs", "time", "out", True, hdr)
-                self.assertEqual(normalized(mine), normalized(open(prod).read()))
+                with open(prod) as f:
+                    self.assertEqual(normalized(mine), normalized(f.read()))
 
     def test_corrections_off_comments_the_include(self):
         self.assertIn("\n#INCLUDE ", y.control_1d(zone_of(EVENT), "obs", "time", "out", False))
@@ -99,7 +102,8 @@ class Locate1D(unittest.TestCase):
             r = subprocess.run(["yanll-locate", "-o", out, os.path.join(FIXTURES, EVENT, "input-1d.json")],
                                capture_output=True, text=True)
             self.assertEqual(r.returncode, 0, r.stderr)
-            result = json.load(open(out))
+            with open(out) as f:
+                result = json.load(f)
         prod_hyp = [h for h in glob.glob(os.path.join(FIXTURES, EVENT, "loc_1d", "*.grid0.loc.hyp")) if ".sum." not in h][0]
         prod = y.hyp_to_json(y.parse_hyp(prod_hyp))
         self.assertEqual(result["nll"]["status"], "LOCATED")
@@ -120,7 +124,8 @@ class RejectsBadInput(unittest.TestCase):
         return subprocess.run(["yanll-locate", "-"], input=json.dumps(doc), capture_output=True, text=True)
 
     def good(self):
-        return json.load(open(os.path.join(FIXTURES, EVENT, "input-1d.json")))
+        with open(os.path.join(FIXTURES, EVENT, "input-1d.json")) as f:
+            return json.load(f)
 
     def test_unknown_key(self):
         doc = self.good()
