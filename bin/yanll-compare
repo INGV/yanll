@@ -33,7 +33,7 @@ STRESS = {"46761811_147805861"}
 
 def parse_hyp(path):
     """The fields of a .grid0.loc.hyp that the comparison needs."""
-    out = {"stations": set(), "with_grid": set()}
+    out = {"stations": set(), "with_grid": set(), "staloc": {}}
     in_phases = False
     for line in open(path):
         f = line.split()
@@ -56,6 +56,7 @@ def parse_hyp(path):
             out["stations"].add(f[0])
             if float(f[18]) > -1e19:
                 out["with_grid"].add(f[0])
+                out["staloc"][f[0]] = (float(f[18]), float(f[19]), float(f[20]))
     return out
 
 
@@ -124,7 +125,13 @@ def compare(prod, cont):
     d_dep = cont["dep"] - prod["dep"]
     d_ot = (cont["ot"] - prod["ot"]).total_seconds()
     ok = d_epi <= TOL_EPI_KM and abs(d_dep) <= TOL_DEP_KM and abs(d_ot) <= TOL_OT_S
-    return d_epi, d_dep, d_ot, ok
+    # Largest horizontal offset between the station coordinates the two runs used
+    # (both in the run's projection): a cross-check of the station snapshot against
+    # the coordinates production's grids were generated with.
+    common = set(prod["staloc"]) & set(cont["staloc"])
+    d_sta = max((math.hypot(prod["staloc"][s][0] - cont["staloc"][s][0],
+                            prod["staloc"][s][1] - cont["staloc"][s][1]) for s in common), default=0.0)
+    return d_epi, d_dep, d_ot, d_sta, ok
 
 
 def main():
@@ -152,13 +159,13 @@ def main():
             print(f"{run} {zone} {dim}: {len(stations)} stations", flush=True)
             cont = locate(event_dir, run, dim, args.data, stations)
             versions.add(cont["version"])
-            d_epi, d_dep, d_ot, ok = compare(prod, cont)
+            d_epi, d_dep, d_ot, d_sta, ok = compare(prod, cont)
             counted = dim != "3d-all" and run not in STRESS
-            rows.append((run, zone, dim, prod, cont, d_epi, d_dep, d_ot, ok, counted))
-            print(f"  d_epi={d_epi:.2f} km d_dep={d_dep:+.2f} km d_ot={d_ot:+.3f} s nphs={prod['nphs']}/{cont['nphs']} {'PASS' if ok else 'FAIL'}", flush=True)
+            rows.append((run, zone, dim, prod, cont, d_epi, d_dep, d_ot, d_sta, ok, counted))
+            print(f"  d_epi={d_epi:.2f} km d_dep={d_dep:+.2f} km d_ot={d_ot:+.3f} s d_sta={d_sta:.3f} km nphs={prod['nphs']}/{cont['nphs']} {'PASS' if ok else 'FAIL'}", flush=True)
 
-    counted = [r for r in rows if r[9]]
-    failed = [r for r in counted if not r[8]]
+    counted = [r for r in rows if r[10]]
+    failed = [r for r in counted if not r[9]]
     cont_version = ", ".join(sorted(v for v in versions if "27Oct2017" not in v))
     with open(args.report, "w") as out:
         out.write("# Comparison with production\n\n")
@@ -169,17 +176,18 @@ def main():
         out.write(".\n\n" if not failed else f", {len(failed)} outside.\n\n")
         out.write("`d_epi` is the epicentral distance between the two maximum-likelihood hypocentres, "
                   "`d_dep` and `d_ot` are container minus production. `nphs` is the number of phases "
-                  "NLLoc used (production / container). Rows marked `stress` or `3d-all` are "
-                  "informative and not counted.\n\n")
-        out.write("| run | zone | dim | production lat, lon, depth, OT | container lat, lon, depth, OT | d_epi km | d_dep km | d_ot s | nphs | result |\n")
-        out.write("|---|---|---|---|---|---|---|---|---|---|\n")
-        for run, zone, dim, prod, cont, d_epi, d_dep, d_ot, ok, is_counted in rows:
+                  "NLLoc used (production / container), `d_sta` the largest horizontal offset "
+                  "between the station coordinates of the two runs. Rows marked `stress` or "
+                  "`3d-all` are informative and not counted.\n\n")
+        out.write("| run | zone | dim | production lat, lon, depth, OT | container lat, lon, depth, OT | d_epi km | d_dep km | d_ot s | d_sta km | nphs | result |\n")
+        out.write("|---|---|---|---|---|---|---|---|---|---|---|\n")
+        for run, zone, dim, prod, cont, d_epi, d_dep, d_ot, d_sta, ok, is_counted in rows:
             tag = "PASS" if ok else "FAIL"
             if not is_counted:
                 tag += " (stress)" if run in STRESS else " (3d-all)"
             out.write(f"| {run} | {zone} | {dim} | {prod['lat']:.4f}, {prod['lon']:.4f}, {prod['dep']:.2f}, {prod['ot']:%H:%M:%S.%f} "
                       f"| {cont['lat']:.4f}, {cont['lon']:.4f}, {cont['dep']:.2f}, {cont['ot']:%H:%M:%S.%f} "
-                      f"| {d_epi:.2f} | {d_dep:+.2f} | {d_ot:+.3f} | {prod['nphs']}/{cont['nphs']} | {tag} |\n")
+                      f"| {d_epi:.2f} | {d_dep:+.2f} | {d_ot:+.3f} | {d_sta:.3f} | {prod['nphs']}/{cont['nphs']} | {tag} |\n")
     print(f"report written to {args.report}: {len(counted) - len(failed)}/{len(counted)} within tolerance")
     return 1 if failed else 0
 
