@@ -18,7 +18,7 @@ Work proceeds in three phases, each usable on its own:
    locations against production. In progress: the comparison runs on `nll-dev`.
 3. A command-line tool, `yanll-locate`, that reads one JSON document (observations,
    model, 1D or 3D, station corrections) and writes one JSON document with the
-   location. Done: schemas in `docs/json-schema.md`, tests in `make check`.
+   location. Done: schemas in `docs/json-schema.md`, tests under `tests/`.
 
 ## Layout
 
@@ -32,9 +32,11 @@ Work proceeds in three phases, each usable on its own:
 | `stations/fdsnws-station.txt` | snapshot of the INGV station list the grids are generated from (`scripts/fetch-stations.sh` refreshes it) |
 | `Dockerfile`, `compose.yaml` | the image: NLL built from upstream at a pinned commit, the production model inputs, the scripts below |
 | `bin/` | scripts shipped in the image: `yanll-locate` (JSON in, JSON out), `yanll-obs2json` (production observation file to input JSON), `yanll-make-grids` (model and travel-time grids), `yanll-compare` (comparison with production) |
-| `tests/` | JSON I/O tests, run inside the image by `make check` |
+| `tests/` | JSON I/O tests, run inside the image (see Checking) |
 | `scripts/` | host-side scripts: verification, station snapshot refresh |
-| `Makefile` | `make check` runs every verification available so far |
+
+There is no Makefile on purpose: every build, run and check is a direct `docker`
+command (or the shell script it names), as listed below.
 
 ## Building the image
 
@@ -121,15 +123,17 @@ the fly (seconds in 1D, minutes per new station in 3D) and keeps nothing unless
 ## Checking
 
 ```
-make check
+scripts/check-reference.sh
+docker compose run --rm yanll python3 -m unittest discover -s /opt/yanll/tests -v
 ```
 
-Runs `scripts/check-reference.sh` (phase 1: every script and file named in
+The first command is the phase-1 check (every script and file named in
 `docs/production-flow.md` exists under `reference/production/` or `fixtures/`, no copied
-file holds a credential) and the JSON I/O tests inside the image (phase 3: the
+file holds a credential); the second runs the JSON I/O tests inside the image (phase 3: the
 observation file and the control file written from the fixture inputs are the
 production ones byte for byte, paths aside, for all 21 events in 1D and 3D; the
 committed input documents are what `yanll-obs2json` writes; one 1D location reproduces
 production within tolerance; malformed inputs are rejected). The tests need the image,
-the data directory, and about 3 minutes of grid generation the first time. The comparison of phase 2 is `make compare` (hours of grids the first
-time) and its report is committed in `docs/comparison-report.md`.
+the data directory, and about 3 minutes of grid generation the first time. The
+comparison of phase 2 is `docker compose run --rm yanll yanll-compare` (hours of grids
+the first time) and its report is committed in `docs/comparison-report.md`.

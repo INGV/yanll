@@ -1,4 +1,6 @@
-"""JSON I/O tests of yanll-locate, run inside the image (`make check`).
+"""JSON I/O tests of yanll-locate, run inside the image:
+
+    docker compose run --rm yanll python3 -m unittest discover -s /opt/yanll/tests -v
 
 They use the production fixtures mounted at /fixtures/events as oracles: the
 observation file and the control file the tool writes must be the production ones byte
