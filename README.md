@@ -104,7 +104,9 @@ paths rewritten, the grids are generated for the stations of the observation fil
 for the stations that had a grid in production, so that both locations see the same
 phases), NLLoc runs, and the maximum-likelihood hypocentres are compared: 1 km in
 epicentre, 2 km in depth, 0.5 s in origin time. `--all-stations` adds an informative 3D
-row per event with grids for every station. The report lists, per event and dimension,
+row per event (`3d-all`) with grids for every station: production has had no 3D grid
+for stations added since June 2023 (`docs/production-flow.md` section 6), so those rows
+show what the missing grids cost. The report lists, per event and dimension,
 both locations, the differences, the number of phases used and the largest offset
 between the station coordinates of the two runs.
 
