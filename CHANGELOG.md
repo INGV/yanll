@@ -1,7 +1,8 @@
 # Release Notes
 
 ### Release 1.1.0-dev (2026-10-16)
-  - . . .
+  - docs: add the NLLoc input check to the comparison web page
+  - ci: run the reference check and the JSON I/O tests on every push, the comparison on demand
 
 ### Release 1.0.0 (2026-10-16)
   - docs: describe the production NLL flow on nll.int.ingv.it with its scripts and 21 fixtures

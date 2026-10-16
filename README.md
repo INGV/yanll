@@ -28,7 +28,7 @@ Work proceeds in three phases, each usable on its own:
 | `docs/production-flow.md` | how a location is computed on the production host, inputs, control files, outputs, how to reproduce one by hand |
 | `docs/comparison-report.md` | the container's locations against production for the fixture events, written by `yanll-compare` |
 | `docs/comparison-table.md`, `docs/comparison-table.json` | the same comparison location by location, with the quality and uncertainty of each `.hyp`, as a table and as data |
-| `docs/comparison-viz.html` | self-contained page for researchers: map of the events, acceptance test and all-stations rows charted from the embedded data |
+| `docs/comparison-viz.html` | self-contained page for researchers: map of the events, input check, acceptance test and all-stations rows charted from the embedded data |
 | `docs/json-schema.md` | input and output documents of `yanll-locate` |
 | `reference/production/` | read-only copies of the production scripts, models, corrections, control files and NLL 7.00.00 sources, paths mirrored, secrets removed (`reference/production/README.md`) |
 | `fixtures/events/` | 21 recent production runs (observations, 1D and 3D `.hyp`, and the same observations as `input-{1d,3d}.json`) used as oracles (`fixtures/events/README.md`) |
@@ -166,3 +166,7 @@ production within tolerance; malformed inputs are rejected). The tests need the 
 the data directory, and about 3 minutes of grid generation the first time. The
 comparison of phase 2 is `docker compose run --rm yanll yanll-compare` (hours of grids
 the first time) and its report is committed in `docs/comparison-report.md`.
+
+GitLab CI (`.gitlab-ci.yml`) runs the first two commands on every push, building the
+image first; the comparison is a manual job of the same pipeline that keeps the report as
+an artifact.
