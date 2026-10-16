@@ -94,6 +94,26 @@ and skipped, and its phases get weight 0 in the location, as in production. The 
 1100 stations in 3D) would take about 1.5 TB and days of CPU: generate what the events
 at hand need.
 
+### When a station or a model changes
+
+A grid is generated only when it is missing: a station is skipped as soon as both
+`time.P.<STA>.time.buf` and `time.S.<STA>.time.buf` exist in the model's directory,
+whatever the snapshot says now. Invalidating is by hand, by deleting files from the data
+directory; the next run regenerates what is missing (an interrupted run leaves no partial
+grid, the final `.buf` appears only at the end).
+
+- Station coordinates or elevation changed: refresh the snapshot
+  (`scripts/fetch-stations.sh`), rebuild the image (the snapshot is copied into it) and
+  delete the station's grids in every model that has them:
+  `rm ${YANLL_DATA}/time_1d/*/time.[PS].<STA>.time.{hdr,buf}` and
+  `rm ${YANLL_DATA}/time_3d/TOMORAMA-2013/time.[PS].<STA>.time.{hdr,buf}`.
+- 1D velocity model of a zone changed (`reference/production/opt/nll/run/modelli_20211027`
+  is what the image ships): rebuild the image and delete `model_1d/<zone>/` and
+  `time_1d/<zone>/`, since every travel-time grid depends on the model grid.
+- 3D model changed: replace `model_3d/` and empty `time_3d/TOMORAMA-2013/`.
+- Station corrections changed: nothing to delete, they are read from the control file at
+  every run; rebuild the image.
+
 ## Comparing with production
 
 ```
