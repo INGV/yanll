@@ -15,7 +15,8 @@ Work proceeds in three phases, each usable on its own:
 2. Docker images with NLL built from source at a pinned commit and the scripts that
    generate the station travel-time grids (Vel2Grid, Grid2Time) for the 17 regional 1D
    models and the TOMORAMA-2013 3D model, plus a scripted comparison of the container's
-   locations against production. In progress: the comparison runs on `nll-dev`.
+   locations against production. Done: `docs/comparison-report.md`, every fixture
+   event within tolerance in 1D and 3D.
 3. A command-line tool, `yanll-locate`, that reads one JSON document (observations,
    model, 1D or 3D, station corrections) and writes one JSON document with the
    location. Done: schemas in `docs/json-schema.md`, tests under `tests/`.
