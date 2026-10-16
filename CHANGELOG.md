@@ -1,5 +1,8 @@
 # Release Notes
 
+### Release 1.1.0-dev (2026-10-16)
+  - . . .
+
 ### Release 1.0.0 (2026-10-16)
   - docs: describe the production NLL flow on nll.int.ingv.it with its scripts and 21 fixtures
   - feat: build NonLinLoc 7.1.05 (7a62fa46) in a Docker image with the 17 1D models and corrections
