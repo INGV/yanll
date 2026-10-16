@@ -49,7 +49,7 @@ rejected.
 | `model` | string, required | a 1D zone nickname (`Alpi-Occidentali_1`, `Alpi-Centrali_2`, `Alpi-Orientali_3`, `Pianura-Padana_4`, `Fascia-Appenninica_5a`, `5b`, `5c`, `5d`, `Fascia-Adriatica_6a`, `6b`, `Gargano_7`, `Salento_8`, `Fascia-Tirrenica_9a`, `9b`, `Calabria_10`, `Sicilia_11`, `Sardegna_12`) or `TOMORAMA-2013`. The caller chooses the zone: production picked it from the INGV epicentre with the polygons of `reference/production/opt/nll/zones_20211128/` |
 | `dimension` | `"1d"` or `"3d"`, required | must agree with the model: a zone is `1d`, `TOMORAMA-2013` is `3d` |
 | `station_corrections` | boolean, required | include the production `LOCDELAY` corrections of the model (`CY` in production). `Sardegna_12` has none: `true` is rejected there |
-| `event_id`, `origin_id` | string, optional | echoed to the output and used to name the NLLoc files (`<event_id>_<origin_id>`) |
+| `event_id`, `origin_id` | string, optional, `[A-Za-z0-9-]+` | echoed to the output and used to name the NLLoc files (`<event_id>_<origin_id>`) |
 | `observations` | array, required, non-empty | one object per arrival, in the order they are written to the observation file |
 
 Each observation:

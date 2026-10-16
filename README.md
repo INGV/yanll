@@ -57,7 +57,9 @@ rerun the comparison: that is the only way to see what a bump changes.
 Grids are large and derived, so they live outside the image in the directory that
 `YANLL_DATA` names (`./data` by default, mounted at `/data` in the container). The
 container writes there as root unless `YANLL_USER=uid:gid` is set (the directory must
-then be writable by that user):
+then be writable by that user). On an NFS export with root squash, as `/mnt/nll` on
+`nll-dev`, root in the container cannot write at all: set `YANLL_USER` to a user that
+can.
 
 ```
 model_1d/<zone>/model.{P,S}.mod.{hdr,buf}   1D model grids, written by Vel2Grid on first use (110 MB per zone)
@@ -70,8 +72,9 @@ compare/<run>/<dim>/                        work directories of yanll-compare
 The 3D model is the pair `TOMORAMA_zmax800_deep.{P,S}.mod.{hdr,buf}` of the production
 host (`/opt/nll/model_TOMORAMA-2013/`, 605 MB per `.buf`, checksums in
 `docs/production-flow.md` section 2.2), copied as `model_3d/model.{P,S}.mod.{hdr,buf}`.
-Without it only 1D locations work. On `nll-dev` the pair is in
-`/home/sysop/yanll-data/model_3d/`.
+Without it only 1D locations work. On `nll-dev` the data directory is
+`YANLL_DATA=/mnt/nll/yanll` with `YANLL_USER=1000:1000`, and the pair is in its
+`model_3d/`.
 
 ## Generating grids
 
@@ -84,8 +87,8 @@ docker compose run --rm yanll yanll-make-grids <model> <station>...
 grid of the zone if missing and a travel-time grid for every listed station that has
 none yet, with the production control files (`ANGLES_NO`: production writes angle
 grids and never reads them). Station coordinates come from the snapshot; a station
-missing from it is reported and skipped, and its phases get weight 0 in the location,
-as in production. The full production set (17 zones, about 800 stations each, plus
+missing from it, or outside the 3D model (Lampedusa, stations abroad), is reported
+and skipped, and its phases get weight 0 in the location, as in production. The full production set (17 zones, about 800 stations each, plus
 1100 stations in 3D) would take about 1.5 TB and days of CPU: generate what the events
 at hand need.
 
@@ -93,7 +96,7 @@ at hand need.
 
 ```
 docker compose run --rm yanll yanll-compare            # all fixture events, writes docs/comparison-report.md
-docker compose run --rm yanll yanll-compare --dims 1d 47442632_147825511
+docker compose run --rm yanll yanll-compare --dims 1d --report /data/compare/one.md 47442632_147825511
 ```
 
 For every run under `fixtures/events/` the production control file is reused with its
@@ -117,8 +120,9 @@ apply the station corrections, and the arrivals; the output carries the
 maximum-likelihood hypocentre, the expectation, the quality and uncertainty blocks of
 the `.hyp`, one entry per phase and the control file that was run. Both documents are
 described in `docs/json-schema.md`. The tool generates the grids the stations need on
-the fly (seconds in 1D, minutes per new station in 3D) and keeps nothing unless
-`--keep`. A production observation file becomes an input document with
+the fly (seconds in 1D, minutes per new station in 3D); the grids stay in the data
+directory, the work directory under `locate/` is removed unless `--keep` is given or
+the run fails. A production observation file becomes an input document with
 `yanll-obs2json --model <model> --dimension <1d|3d> <file>`.
 
 ## Checking

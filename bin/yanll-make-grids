@@ -149,6 +149,13 @@ ${LINE}
 GTFILES  ${MODELDIR}/model  ${TMP}/time   ${PHASE}
 CTRL
     Grid2Time "${TMP}/grid2time_${PHASE}.in" > "${TMP}/grid2time_${PHASE}.log" 2>&1
+    # A station outside the model extent (Lampedusa, stations abroad) has no grid in
+    # production either and its phases get weight 0: skip it. Grid2Time exits 0 on
+    # this error, so the log is the only evidence; any other failure stays fatal.
+    if grep -q "Source point is not inside model grid" "${TMP}/grid2time_${PHASE}.log"; then
+        echo "yanll-make-grids: ${STA} is outside the ${MODEL_3D} model, no ${PHASE} grid" >&2
+        return 0
+    fi
     GridCascadingDecimate 20,40,100 "${TMP}/time.${PHASE}.${STA}.time.buf" "${TMP}/casc/" >> "${TMP}/grid2time_${PHASE}.log" 2>&1
     mv "${TMP}/casc/casc.time.${PHASE}.${STA}.time.hdr" "${TIMEDIR}/time.${PHASE}.${STA}.time.hdr"
     mv "${TMP}/casc/casc.time.${PHASE}.${STA}.time.buf" "${TIMEDIR}/time.${PHASE}.${STA}.time.buf"
