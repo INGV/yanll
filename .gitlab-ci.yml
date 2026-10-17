@@ -5,7 +5,8 @@
 # aside, for every fixture event in 1D and 3D; one event is then located to prove the
 # chain runs. The comparison with production needs the 3D model body and hours of grid
 # generation, so it is a manual job that keeps the report as an artifact and is
-# meaningful only on a runner that has the data.
+# meaningful only on a runner that has the data. On develop and on release tags the
+# tested image is published to Docker Hub.
 #
 # The docker jobs use docker-in-docker, which needs a privileged runner: the shared
 # INGV runners (grunner1, grunner2) are set up that way, as spada-v2 already relies on.
@@ -14,6 +15,7 @@ stages:
   - check
   - test
   - compare
+  - publish
 
 check-reference:
   stage: check
@@ -62,3 +64,38 @@ compare:
       - docs/comparison-report.md
       - docs/comparison-table.md
       - docs/comparison-table.json
+
+# The project has no container registry, so the image tested above cannot be handed
+# over: this job rebuilds it from the same pinned sources, with the OCI labels set from
+# the pipeline, and pushes it. develop -> :develop; vX.Y.Z -> :X.Y.Z and :latest; any
+# other ref has no publish job. Credentials are the project CI variables
+# DOCKER_HUB_USERNAME and DOCKER_HUB_ACCESS_TOKEN, never printed.
+publish:
+  extends: .docker
+  stage: publish
+  needs:
+    - test
+    - check-example
+  rules:
+    - if: $CI_COMMIT_BRANCH == "develop"
+    - if: $CI_COMMIT_TAG =~ /^v[0-9]+\.[0-9]+\.[0-9]+$/
+  before_script:
+    - docker --version
+  script:
+    - |
+      if [ -n "${CI_COMMIT_TAG}" ]; then
+        VERSION="${CI_COMMIT_TAG#v}"
+        TAGS="${VERSION} latest"
+      else
+        VERSION="develop"
+        TAGS="develop"
+      fi
+      echo "publishing ingv/yanll with tags: ${TAGS}"
+    - docker build --platform linux/amd64 --build-arg "SOURCE=${CI_PROJECT_URL}" --build-arg "REVISION=${CI_COMMIT_SHA}" --build-arg "VERSION=${VERSION}" -t yanll:publish .
+    - printf '%s' "${DOCKER_HUB_ACCESS_TOKEN}" | docker login -u "${DOCKER_HUB_USERNAME}" --password-stdin
+    - |
+      for TAG in ${TAGS}; do
+        docker tag yanll:publish "ingv/yanll:${TAG}"
+        docker push "ingv/yanll:${TAG}"
+      done
+    - docker logout
