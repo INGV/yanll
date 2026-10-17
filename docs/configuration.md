@@ -146,10 +146,13 @@ beyond the model names: two sites with a model of the same name must not share i
 
 Every tool (`yanll-locate`, `yanll-make-grids`) checks what it needs before running
 NLL and exits with code 2 and a message on stderr that names the missing file and this
-document: no directory at `YANLL_CONFIG`, no `models/`, a model without `locate.in` or
-`grid2time.in`, no `stations.txt`, a model grid absent with no `vel2grid.in` to build
-it, a placeholder yanll does not know. `yanll-obs2json` reads no configuration: it only
-converts an observation file to an input document.
+document: no directory at `YANLL_CONFIG`, no `models/`, a model directory without
+`locate.in` or `grid2time.in`, no `stations.txt`, a model grid absent with no
+`vel2grid.in` to build it, a placeholder yanll does not know. A model name with no
+directory at all is an input error (`unknown model`, also exit 2, listing the models the
+configuration has). What `yanll-make-grids` finds is repeated on `yanll-locate`'s stderr
+when it runs it. `yanll-obs2json` reads no configuration: it only converts an
+observation file to an input document.
 
 ## The INGV configuration
 

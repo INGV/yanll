@@ -72,12 +72,13 @@ def main():
     if r.returncode != 0:
         # The grid script's own messages (a missing model body, a bad template) are the
         # ones that name the cause: repeat them, the rest of the log stays in the file.
+        # Its exit 2 is a configuration error and stays 2 here; anything else is NLL.
         with open(log_path) as f:
             for line in f:
                 if line.startswith("yanll-make-grids:"):
                     sys.stderr.write(line)
         print(f"yanll-locate: grid generation failed, see {log_path}", file=sys.stderr)
-        return 3
+        return 2 if r.returncode == 2 else 3
 
     control_path = os.path.join(workdir, f"{root}_loc.in")
     with open(control_path, "w") as f:

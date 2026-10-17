@@ -18,8 +18,9 @@ docker compose run --rm -T yanll yanll-locate - < input.json > out.json
 Exit codes: 0 located; 1 NLLoc ran but did not locate (`nll.status` is `REJECTED` or
 `ABORTED` with NLLoc's message, or `NOT_LOCATED` with its warnings when it skipped the
 event, for instance with fewer than 3 phases, and wrote no location: then the document
-has no `origin`, `quality`, `uncertainty` or `phases`); 2 invalid input (message on
-stderr); 3 grid generation or NLLoc failure.
+has no `origin`, `quality`, `uncertainty` or `phases`); 2 invalid input or incomplete
+configuration (message on stderr, naming `docs/configuration.md` in the second case); 3
+grid generation or NLLoc failure.
 
 Conventions: times are ISO 8601 UTC with microseconds (`2026-10-04T20:12:29.160000Z`);
 coordinates are decimal degrees, positive north and east; depths, distances and grid

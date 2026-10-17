@@ -117,6 +117,10 @@ def validate_input(doc):
     if not isinstance(model, str) or not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9_.-]*", model):
         raise InputError("model must be a name of letters, digits, '_', '-' and '.'")
     if model not in models():
+        # A directory without locate.in is a half-made model, the site's problem, not
+        # the caller's.
+        if os.path.isdir(model_dir(model)):
+            raise ConfigError(f"{os.path.join(model_dir(model), 'locate.in')} missing: see {DOCS}")
         raise InputError(f"unknown model {model!r}: one of {', '.join(models())}")
     if not isinstance(doc["station_corrections"], bool):
         raise InputError("station_corrections must be true or false")

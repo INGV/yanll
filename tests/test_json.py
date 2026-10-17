@@ -189,6 +189,14 @@ class Configuration(unittest.TestCase):
         self.assertEqual(r.returncode, 2, r.stderr)
         self.assertIn("docs/configuration.md", r.stderr)
 
+    def test_model_directory_without_template(self):
+        with tempfile.TemporaryDirectory() as cfg:
+            os.makedirs(os.path.join(cfg, "models", zone_of(EVENT)))
+            r = locate(good_input(), env={**os.environ, "YANLL_CONFIG": cfg})
+        self.assertEqual(r.returncode, 2, r.stderr)
+        self.assertIn("locate.in missing", r.stderr)
+        self.assertIn("docs/configuration.md", r.stderr)
+
 
 class RejectsBadInput(unittest.TestCase):
     def test_unknown_key(self):
