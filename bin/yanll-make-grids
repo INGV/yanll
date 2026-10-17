@@ -144,6 +144,8 @@ for STA in $(missing_stations "$@"); do
         PIDS+=("$!")
     done
     for PID in "${PIDS[@]}"; do
-        wait "${PID}" || { echo "yanll-make-grids: grids of ${STA} failed, see ${TMP}" >&2; exit 1; }
+        # The job's own exit code is kept: 2 is a configuration error (a bad template),
+        # anything else an NLL failure.
+        wait "${PID}" || { RC=$?; echo "yanll-make-grids: grids of ${STA} failed, see ${TMP}" >&2; exit "${RC}"; }
     done
 done

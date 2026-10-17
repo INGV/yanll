@@ -74,6 +74,7 @@ publish:
   extends: .docker
   stage: publish
   needs:
+    - check-reference
     - test
     - check-example
   rules:
