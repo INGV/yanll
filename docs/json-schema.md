@@ -2,12 +2,13 @@
 
 `yanll-locate` reads one JSON document with the parameters of a run and writes one JSON
 document with the location. The tool is an adapter: from the input it writes the
-`NLLOC_OBS` observation file and the NLLoc control file exactly as the production
-scripts do (`02_qml_parser.py`, `04_locator_nll_{1d,3d}.sh`, see
-`docs/production-flow.md`), generates the travel-time grids the stations need, runs
-`NLLoc` and maps the `.hyp` it writes to the output. `yanll-obs2json` turns a production
-observation file into an input document; `fixtures/events/<run>/input-{1d,3d}.json`
-were made with it.
+`NLLOC_OBS` observation file and fills the NLLoc control-file template of the model
+named in the input (`${YANLL_CONFIG}/models/<model>/locate.in`, see
+`docs/configuration.md`), generates the travel-time grids the stations need, runs
+`NLLoc` and maps the `.hyp` it writes to the output. With the INGV configuration
+mounted the observation and control files are the production ones byte for byte.
+`yanll-obs2json` turns an observation file into an input document;
+`fixtures/events/<run>/input-{1d,3d}.json` were made with it.
 
 ```
 docker compose run --rm -T yanll yanll-locate /fixtures/events/47442632_147825511/input-1d.json > out.json
@@ -31,7 +32,6 @@ rejected.
 ```json
 {
   "model": "Fascia-Adriatica_6a",
-  "dimension": "1d",
   "station_corrections": true,
   "event_id": "47442632",
   "origin_id": "147825511",
@@ -46,9 +46,8 @@ rejected.
 
 | Key | Type | Meaning |
 |---|---|---|
-| `model` | string, required | a 1D zone nickname (`Alpi-Occidentali_1`, `Alpi-Centrali_2`, `Alpi-Orientali_3`, `Pianura-Padana_4`, `Fascia-Appenninica_5a`, `5b`, `5c`, `5d`, `Fascia-Adriatica_6a`, `6b`, `Gargano_7`, `Salento_8`, `Fascia-Tirrenica_9a`, `9b`, `Calabria_10`, `Sicilia_11`, `Sardegna_12`) or `TOMORAMA-2013`. The caller chooses the zone: production picked it from the INGV epicentre with the polygons of `reference/production/opt/nll/zones_20211128/` |
-| `dimension` | `"1d"` or `"3d"`, required | must agree with the model: a zone is `1d`, `TOMORAMA-2013` is `3d` |
-| `station_corrections` | boolean, required | include the production `LOCDELAY` corrections of the model (`CY` in production). `Sardegna_12` has none: `true` is rejected there |
+| `model` | string, required | the name of a model directory of the mounted configuration (`docs/configuration.md`): letters, digits, `_`, `-` and `.`. With `config/ingv/` a 1D zone nickname (`Alpi-Occidentali_1`, `Alpi-Centrali_2`, `Alpi-Orientali_3`, `Pianura-Padana_4`, `Fascia-Appenninica_5a`, `5b`, `5c`, `5d`, `Fascia-Adriatica_6a`, `6b`, `Gargano_7`, `Salento_8`, `Fascia-Tirrenica_9a`, `9b`, `Calabria_10`, `Sicilia_11`, `Sardegna_12`) or `TOMORAMA-2013`; the caller chooses the zone, as production picked it from the INGV epicentre with the polygons of `reference/production/opt/nll/zones_20211128/`. Whether a model is 1D or 3D is the model's business, not the input's |
+| `station_corrections` | boolean, required | include the model's `corrections.in` (`LOCDELAY` lines; the production corrections, `CY`, in `config/ingv/`). A model without the file refuses `true` (`Sardegna_12`) |
 | `event_id`, `origin_id` | string, optional, `[A-Za-z0-9-]+` | echoed to the output and used to name the NLLoc files (`<event_id>_<origin_id>`) |
 | `observations` | array, required, non-empty | one object per arrival, in the order they are written to the observation file |
 
@@ -59,7 +58,7 @@ Each observation:
 | `station` | string, required | station code, 1 to 6 alphanumeric characters; the only key NLLoc uses to find the travel-time grid and the correction (network, location and channel play no part, as in production) |
 | `phase` | string, required | phase label; only its first letter, upper-cased, is written (`Pg` → `P`, `Sn` → `S`), as `02_qml_parser.py` does |
 | `time` | string, required | pick time, ISO 8601 with a UTC designator |
-| `quality` | integer 0 to 9, required | pick class, mapped to seconds by `LOCQUAL2ERR 0.05 0.2 0.45 0.8 99999.9`; class 4 and above get the last value, so weight 0. Production derives it from the QuakeML pick uncertainty: 0.1 s → 0, 0.3 → 1, 0.6 → 2, 1.0 → 3, 3.0 → 4, 10.0 → 8 |
+| `quality` | integer 0 to 9, required | pick class, mapped to seconds by the `LOCQUAL2ERR` line of the model's template (`0.05 0.2 0.45 0.8 99999.9` in `config/ingv/`: class 4 and above get the last value, so weight 0). Production derives it from the QuakeML pick uncertainty: 0.1 s → 0, 0.3 → 1, 0.6 → 2, 1.0 → 3, 3.0 → 4, 10.0 → 8 |
 | `channel` | string, optional | channel code, echoed (`?` when absent) |
 | `onset` | `"?"`, `"i"`, `"e"`, `"impulsive"` or `"emergent"`, optional | onset, echoed (`?` when absent; production writes the QuakeML word) |
 | `first_motion` | `"?"`, `"U"` or `"D"`, optional | first motion, echoed (`?` when absent) |
@@ -76,7 +75,6 @@ project tolerance (see `docs/comparison-report.md`), not to the digit.
 ```json
 {
   "model": "Fascia-Adriatica_6a",
-  "dimension": "1d",
   "station_corrections": true,
   "event_id": "47442632",
   "origin_id": "147825511",
@@ -124,13 +122,13 @@ project tolerance (see `docs/comparison-report.md`), not to the digit.
 
 | Key | From the `.hyp` | Meaning |
 |---|---|---|
-| `model`, `dimension`, `station_corrections`, `event_id`, `origin_id` | input | echoed |
+| `model`, `station_corrections`, `event_id`, `origin_id` | input | echoed |
 | `nll.version` | `SIGNATURE` | the NLLoc that ran |
 | `nll.status`, `nll.message` | `NLLOC` | `LOCATED`, `REJECTED` or `ABORTED` and NLLoc's explanation |
 | `nll.transform` | `TRANSFORM` | the projection of the grid coordinates (`x`, `y` below) |
 | `nll.grid` | `GRID` | the location grid: nodes, origin and spacing in km |
 | `nll.search` | `SEARCH` | octree statistics: nodes initially and in all evaluated, smallest node side (x, y, z), PDF integral and scatter volume |
-| `nll.control_file` | | the control file the tool wrote, for traceability |
+| `nll.control_file` | | the control file the tool wrote (the model's template with the placeholders filled), for traceability |
 | `origin.time`, `latitude`, `longitude`, `depth` | `GEOGRAPHIC` | the maximum-likelihood hypocentre |
 | `origin.x`, `y`, `z` | `HYPOCENTER` | the same in grid coordinates |
 | `origin.expectation` | `STAT_GEOG`, `STATISTICS` | the expectation of the PDF, geographic and grid |
@@ -142,4 +140,4 @@ project tolerance (see `docs/comparison-report.md`), not to the digit.
 | `uncertainty.ellipsoid` | `STATISTICS` | 68 % error ellipsoid: azimuth, dip and length of the two minor axes, length of the major axis |
 | `uncertainty.horizontal` | `QML_OriginUncertainty` | horizontal uncertainty: min and max semi-axis and the azimuth of the max |
 | `uncertainty.confidence_ellipsoid` | `QML_ConfidenceEllipsoid` | the same ellipsoid in QuakeML terms |
-| `phases[]` | `PHASE` lines | one per arrival, in NLLoc's order (by distance): the input fields as written, then `error` (seconds, from the quality class), `travel_time` predicted, `residual`, `weight` (0 means unused, `used` says so), the station in grid coordinates (`null` when the station has no travel-time grid), epicentral `distance` and `azimuth`, take-off `takeoff_*` (placeholders `359.0`, `-1.0`, `0`: angle grids are not generated, as production never read them) and the station `correction` applied |
+| `phases[]` | `PHASE` lines | one per arrival, in NLLoc's order (by distance): the input fields as written, then `error` (seconds, from the quality class), `travel_time` predicted, `residual`, `weight` (0 means unused, `used` says so), the station in grid coordinates (`null` when the station has no travel-time grid), epicentral `distance` and `azimuth`, take-off `takeoff_*` (placeholders `359.0`, `-1.0`, `0` when the templates say `ANGLES_NO`, as the INGV ones do: production never read angle grids) and the station `correction` applied |
