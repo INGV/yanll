@@ -1,0 +1,114 @@
+{
+  "model": "synthetic",
+  "station_corrections": true,
+  "observations": [
+    {
+      "station": "ST01",
+      "channel": "?",
+      "onset": "?",
+      "phase": "P",
+      "first_motion": "?",
+      "time": "2026-01-01T00:00:05.452000Z",
+      "quality": 0
+    },
+    {
+      "station": "ST01",
+      "channel": "?",
+      "onset": "?",
+      "phase": "S",
+      "first_motion": "?",
+      "time": "2026-01-01T00:00:09.429700Z",
+      "quality": 0
+    },
+    {
+      "station": "ST02",
+      "channel": "?",
+      "onset": "?",
+      "phase": "P",
+      "first_motion": "?",
+      "time": "2026-01-01T00:00:04.956600Z",
+      "quality": 0
+    },
+    {
+      "station": "ST02",
+      "channel": "?",
+      "onset": "?",
+      "phase": "S",
+      "first_motion": "?",
+      "time": "2026-01-01T00:00:08.572900Z",
+      "quality": 0
+    },
+    {
+      "station": "ST03",
+      "channel": "?",
+      "onset": "?",
+      "phase": "P",
+      "first_motion": "?",
+      "time": "2026-01-01T00:00:06.868700Z",
+      "quality": 0
+    },
+    {
+      "station": "ST03",
+      "channel": "?",
+      "onset": "?",
+      "phase": "S",
+      "first_motion": "?",
+      "time": "2026-01-01T00:00:11.879900Z",
+      "quality": 0
+    },
+    {
+      "station": "ST04",
+      "channel": "?",
+      "onset": "?",
+      "phase": "P",
+      "first_motion": "?",
+      "time": "2026-01-01T00:00:06.853900Z",
+      "quality": 0
+    },
+    {
+      "station": "ST04",
+      "channel": "?",
+      "onset": "?",
+      "phase": "S",
+      "first_motion": "?",
+      "time": "2026-01-01T00:00:11.854500Z",
+      "quality": 0
+    },
+    {
+      "station": "ST05",
+      "channel": "?",
+      "onset": "?",
+      "phase": "P",
+      "first_motion": "?",
+      "time": "2026-01-01T00:00:04.736600Z",
+      "quality": 0
+    },
+    {
+      "station": "ST05",
+      "channel": "?",
+      "onset": "?",
+      "phase": "S",
+      "first_motion": "?",
+      "time": "2026-01-01T00:00:08.192600Z",
+      "quality": 0
+    },
+    {
+      "station": "ST06",
+      "channel": "?",
+      "onset": "?",
+      "phase": "P",
+      "first_motion": "?",
+      "time": "2026-01-01T00:00:06.442300Z",
+      "quality": 0
+    },
+    {
+      "station": "ST06",
+      "channel": "?",
+      "onset": "?",
+      "phase": "S",
+      "first_motion": "?",
+      "time": "2026-01-01T00:00:11.142500Z",
+      "quality": 0
+    }
+  ]
+}
