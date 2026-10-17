@@ -36,7 +36,7 @@ test:
   extends: .docker
   stage: test
   script:
-    - docker compose run --rm yanll python3 -m unittest discover -s /opt/yanll/tests -v
+    - docker compose run --rm yanll python3 -m unittest discover -s /tests -v
 
 compare:
   extends: .docker
@@ -44,7 +44,7 @@ compare:
   when: manual
   timeout: 8h
   script:
-    - docker compose run --rm yanll yanll-compare
+    - docker compose run --rm yanll /tests/yanll-compare
   artifacts:
     when: always
     expire_in: 30 days

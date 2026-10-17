@@ -1,6 +1,7 @@
-"""JSON I/O tests of yanll-locate, run inside the image:
+"""JSON I/O tests of yanll-locate, run in the container with the INGV configuration
+mounted at /config and this directory at /tests:
 
-    docker compose run --rm yanll python3 -m unittest discover -s /opt/yanll/tests -v
+    docker compose run --rm yanll python3 -m unittest discover -s /tests -v
 
 They use the production fixtures mounted at /fixtures/events as oracles: the
 observation file and the control file the tool writes must be the production ones byte
@@ -19,7 +20,7 @@ sys.path.insert(0, "/opt/yanll/bin")
 import yanlllib as y  # noqa: E402
 
 FIXTURES = os.environ.get("YANLL_FIXTURES", "/fixtures/events")
-MODEL_3D_HDR = "/reference/production/opt/nll/model_TOMORAMA-2013/TOMORAMA_zmax800_deep.P.mod.hdr"
+MODEL_3D = "TOMORAMA-2013"
 EVENT = "47442632_147825511"
 TOL_EPI_KM, TOL_DEP_KM, TOL_OT_S = 1.0, 2.0, 0.5
 
@@ -38,14 +39,16 @@ def zone_of(run):
 
 
 def normalized(text):
-    """Control-file lines with the three LOCFILES paths and the INCLUDE path blanked."""
+    """Control-file lines with the three LOCFILES paths blanked and the INCLUDE path
+    dropped (production names the file correzioni_<zone>.in, the configuration
+    corrections.in; the comment mark that disables it is kept)."""
     out = []
     for line in text.splitlines():
         if line.startswith("LOCFILES"):
             f = line.split()
             out.append(f"LOCFILES <obs> {f[2]} <time> <out> {len(f)}")
         elif line.lstrip("#").startswith("INCLUDE"):
-            out.append(line.split()[0] + " " + os.path.basename(line.split()[1]))
+            out.append(line.split()[0])
         else:
             out.append(line)
     return out
@@ -56,8 +59,7 @@ class ObservationFile(unittest.TestCase):
         for run in runs():
             with self.subTest(run=run):
                 obs = obs_of(run)
-                doc = {"model": y.MODEL_3D, "dimension": "3d", "station_corrections": True,
-                       "observations": y.read_obs(obs)}
+                doc = {"model": MODEL_3D, "station_corrections": True, "observations": y.read_obs(obs)}
                 clean = y.validate_input(doc)
                 text = y.OBS_HEADER + "".join(y.obs_line(o) for o in clean["observations"])
                 with open(obs) as f:
@@ -67,9 +69,9 @@ class ObservationFile(unittest.TestCase):
 class InputFixtures(unittest.TestCase):
     def test_committed_inputs_are_what_obs2json_writes(self):
         for run in runs():
-            for dim, model in (("1d", zone_of(run)), ("3d", y.MODEL_3D)):
+            for dim, model in (("1d", zone_of(run)), ("3d", MODEL_3D)):
                 with self.subTest(run=run, dim=dim):
-                    out = subprocess.run(["yanll-obs2json", "--model", model, "--dimension", dim, obs_of(run)],
+                    out = subprocess.run(["yanll-obs2json", "--model", model, obs_of(run)],
                                          check=True, capture_output=True, text=True).stdout
                     with open(os.path.join(FIXTURES, run, f"input-{dim}.json")) as f:
                         self.assertEqual(json.loads(out), json.load(f))
@@ -80,7 +82,7 @@ class ControlFile(unittest.TestCase):
         for run in runs():
             with self.subTest(run=run):
                 prod = glob.glob(os.path.join(FIXTURES, run, "loc_1d", "*_loc.in"))[0]
-                mine = y.control_1d(zone_of(run), "obs", "time", "out", True)
+                mine = y.locate_control(zone_of(run), "obs", "time", "out", True)
                 with open(prod) as f:
                     self.assertEqual(normalized(mine), normalized(f.read()))
 
@@ -88,12 +90,12 @@ class ControlFile(unittest.TestCase):
         for run in runs():
             with self.subTest(run=run):
                 prod = glob.glob(os.path.join(FIXTURES, run, "loc_3d", "*_loc.in"))[0]
-                mine = y.control_3d("obs", "time", "out", True, MODEL_3D_HDR)
+                mine = y.locate_control(MODEL_3D, "obs", "time", "out", True)
                 with open(prod) as f:
                     self.assertEqual(normalized(mine), normalized(f.read()))
 
     def test_corrections_off_comments_the_include(self):
-        self.assertIn("\n#INCLUDE ", y.control_1d(zone_of(EVENT), "obs", "time", "out", False))
+        self.assertIn("\n#INCLUDE ", y.locate_control(zone_of(EVENT), "obs", "time", "out", False))
 
 
 class HypMapping(unittest.TestCase):
@@ -142,8 +144,8 @@ class Locate1D(unittest.TestCase):
         self.assertIn("LOCGRID  561 721 225 -140 -180 -3 0.5 0.5 0.5", result["nll"]["control_file"])
 
 
-def locate(doc):
-    return subprocess.run(["yanll-locate", "-"], input=json.dumps(doc), capture_output=True, text=True)
+def locate(doc, env=None):
+    return subprocess.run(["yanll-locate", "-"], input=json.dumps(doc), capture_output=True, text=True, env=env)
 
 
 def good_input():
@@ -161,7 +163,7 @@ class LocateEdgeCases(unittest.TestCase):
         self.assertEqual(result["nll"]["status"], "NOT_LOCATED")
         self.assertIn("too few observations", result["nll"]["message"])
 
-    def test_station_missing_from_snapshot_gets_weight_zero(self):
+    def test_station_missing_from_catalog_gets_weight_zero(self):
         doc = good_input()
         doc["observations"].append({"station": "ZZZZ", "phase": "P", "time": "2026-10-04T20:12:33.000000Z", "quality": 0})
         r = locate(doc)
@@ -171,38 +173,49 @@ class LocateEdgeCases(unittest.TestCase):
         self.assertIsNone(zzzz["station_x"])
 
 
+class Configuration(unittest.TestCase):
+    """Without a configuration every tool stops and names the documentation."""
+
+    def test_locate_without_configuration(self):
+        with tempfile.TemporaryDirectory() as empty:
+            r = locate(good_input(), env={**os.environ, "YANLL_CONFIG": empty})
+        self.assertEqual(r.returncode, 2, r.stderr)
+        self.assertIn("docs/configuration.md", r.stderr)
+
+    def test_make_grids_without_configuration(self):
+        with tempfile.TemporaryDirectory() as empty:
+            r = subprocess.run(["yanll-make-grids", zone_of(EVENT), "MNTP"], capture_output=True, text=True,
+                               env={**os.environ, "YANLL_CONFIG": empty})
+        self.assertEqual(r.returncode, 2, r.stderr)
+        self.assertIn("docs/configuration.md", r.stderr)
+
+
 class RejectsBadInput(unittest.TestCase):
-    def locate(self, doc):
-        return locate(doc)
-
-    def good(self):
-        return good_input()
-
     def test_unknown_key(self):
-        doc = self.good()
+        doc = good_input()
         doc["starting_location"] = {"latitude": 43.2, "longitude": 13.4}
-        r = self.locate(doc)
+        r = locate(doc)
         self.assertEqual(r.returncode, 2)
         self.assertIn("unknown keys: starting_location", r.stderr)
 
     def test_quality_out_of_range(self):
-        doc = self.good()
+        doc = good_input()
         doc["observations"][0]["quality"] = 10
-        r = self.locate(doc)
+        r = locate(doc)
         self.assertEqual(r.returncode, 2)
         self.assertIn("quality", r.stderr)
 
-    def test_dimension_must_match_model(self):
-        doc = self.good()
-        doc["dimension"] = "3d"
-        r = self.locate(doc)
+    def test_unknown_model(self):
+        doc = good_input()
+        doc["model"] = "Nowhere_99"
+        r = locate(doc)
         self.assertEqual(r.returncode, 2)
-        self.assertIn("1d zone", r.stderr)
+        self.assertIn("unknown model", r.stderr)
 
-    def test_zone_without_corrections(self):
-        doc = self.good()
+    def test_model_without_corrections(self):
+        doc = good_input()
         doc["model"] = "Sardegna_12"
-        r = self.locate(doc)
+        r = locate(doc)
         self.assertEqual(r.returncode, 2)
         self.assertIn("no station corrections", r.stderr)
 

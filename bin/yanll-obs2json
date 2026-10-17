@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
-"""Turn a production NLLOC_OBS observation file into a yanll-locate input document.
+"""Turn an NLLOC_OBS observation file into a yanll-locate input document.
 
-The event and origin ids are taken from a file name of the production form
-<eventid>_<originid>_version_<v>.phsnll when present.
+The event and origin ids are taken from a file name of the form
+<eventid>_<originid>_version_<v>.phsnll when present. The tool reads no configuration:
+the model is written as given, yanll-locate checks it.
 """
 import argparse
 import json
@@ -14,8 +15,8 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import yanlllib as y  # noqa: E402
 
 
-def to_json(obs_path, model, dimension, corrections):
-    doc = {"model": model, "dimension": dimension, "station_corrections": corrections}
+def to_json(obs_path, model, corrections):
+    doc = {"model": model, "station_corrections": corrections}
     m = re.match(r"(\d+)_(\d+)_version_\d+\.phsnll$", os.path.basename(obs_path))
     if m:
         doc["event_id"], doc["origin_id"] = m.group(1), m.group(2)
@@ -26,11 +27,10 @@ def to_json(obs_path, model, dimension, corrections):
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("obs", help="NLLOC_OBS file")
-    ap.add_argument("--model", required=True, help="zone nickname or TOMORAMA-2013")
-    ap.add_argument("--dimension", required=True, choices=["1d", "3d"])
+    ap.add_argument("--model", required=True, help="model name, a directory under ${YANLL_CONFIG}/models")
     ap.add_argument("--no-corrections", action="store_true", help="station_corrections false (default true)")
     args = ap.parse_args()
-    doc = to_json(args.obs, args.model, args.dimension, not args.no_corrections)
+    doc = to_json(args.obs, args.model, not args.no_corrections)
     json.dump(doc, sys.stdout, indent=2)
     sys.stdout.write("\n")
 

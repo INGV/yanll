@@ -1,38 +1,85 @@
 """Shared code of yanll-locate and yanll-obs2json.
 
-Reproduces, from JSON, what the production scripts build from a QuakeML: the NLLOC_OBS
-observation file (02_qml_parser.py) and the NLLoc control file (04_locator_nll_1d.sh,
-04_locator_nll_3d.sh), byte for byte, and reads the .hyp NLLoc writes back into JSON.
+yanll owns the JSON side of a location and nothing of NLL's configuration: the input
+document becomes an NLLOC_OBS observation file, the NLLoc control file is the model's
+template under ${YANLL_CONFIG}/models/<model>/locate.in with its placeholders filled,
+and the .hyp NLLoc writes becomes the output document. The configuration contract is
+docs/configuration.md.
 """
 import datetime as dt
-import json
 import os
 import re
 
-MODEL_3D = "TOMORAMA-2013"
-MODELS_1D_DIR = "/opt/yanll/models_1d"
-CORRECTIONS_1D = MODELS_1D_DIR + "/correzioni/correzioni_{zone}.in"
-CORRECTIONS_3D = "/opt/yanll/corrections_3d/corrections_TOMORAMA-2013.in"
 DATA = os.environ.get("YANLL_DATA", "/data")
+CONFIG = os.environ.get("YANLL_CONFIG", "/config")
+DOCS = "docs/configuration.md"
 
 OBS_HEADER = ("#Station_name Instrument Component P_phase_onset Phase_descriptor First_motion "
               "Date Hour_minute Seconds Err_type Err Err_mag Coda_duration Amplitude\n")
-# The production heredocs pad this line with 48 blanks.
-CONTROL_LINE = "CONTROL 2 123456" + " " * 48
 NO_VALUE = "-1.00E+00"
 
-INPUT_KEYS = {"model", "dimension", "station_corrections", "observations", "event_id", "origin_id"}
+INPUT_KEYS = {"model", "station_corrections", "observations", "event_id", "origin_id"}
 OBSERVATION_KEYS = {"station", "channel", "onset", "phase", "first_motion", "time", "quality"}
+
+PLACEHOLDER = re.compile(r"@[A-Z]+@")
 
 
 class InputError(Exception):
     """The input document is not a valid run: reported to the caller, exit code 2."""
 
 
-def zones():
-    """The 1D zones shipped in the image, from their model files."""
-    return sorted(f[len("model_"):-len(".in")] for f in os.listdir(MODELS_1D_DIR)
-                  if f.startswith("model_") and f.endswith(".in"))
+class ConfigError(Exception):
+    """The configuration at YANLL_CONFIG is missing or incomplete: exit code 2, the
+    message names the file and the documentation."""
+
+
+# ---------------------------------------------------------------------------
+# Configuration directory
+# ---------------------------------------------------------------------------
+
+def model_dir(model):
+    return os.path.join(CONFIG, "models", model)
+
+
+def models():
+    """The models the configuration offers: the directories under models/ with a
+    locate.in. An absent models/ means no configuration is mounted at all."""
+    d = os.path.join(CONFIG, "models")
+    if not os.path.isdir(d):
+        raise ConfigError(f"no models directory in {CONFIG} (YANLL_CONFIG): see {DOCS}")
+    return sorted(m for m in os.listdir(d) if os.path.isfile(os.path.join(d, m, "locate.in")))
+
+
+def check_config(model):
+    """The files a location with the model reads, each named when absent."""
+    for path in (os.path.join(CONFIG, "stations.txt"),
+                 os.path.join(model_dir(model), "locate.in"),
+                 os.path.join(model_dir(model), "grid2time.in")):
+        if not os.path.isfile(path):
+            raise ConfigError(f"{path} missing: see {DOCS}")
+
+
+def render(template_path, values):
+    """The template with every @NAME@ of values replaced, by plain replacement so that
+    nothing else in the file is interpreted. A placeholder left over is a configuration
+    error: NLLoc would read it as literal text and fail far from the cause."""
+    with open(template_path) as fin:
+        text = fin.read()
+    for name, value in values.items():
+        text = text.replace(f"@{name}@", value)
+    left = PLACEHOLDER.search(text)
+    if left:
+        raise ConfigError(f"{template_path}: unknown placeholder {left.group(0)}: see {DOCS}")
+    return text
+
+
+def locate_control(model, obs_path, time_root, out_root, corrections):
+    """The NLLoc control file of a run: the model's locate.in with the paths filled in
+    and the corrections INCLUDE line active or commented out."""
+    cfg = model_dir(model)
+    include = ("" if corrections else "#") + "INCLUDE " + os.path.join(cfg, "corrections.in")
+    return render(os.path.join(cfg, "locate.in"),
+                  {"OBS": obs_path, "TIME": time_root, "OUT": out_root, "CORRECTIONS": include})
 
 
 # ---------------------------------------------------------------------------
@@ -62,22 +109,19 @@ def validate_input(doc):
     unknown = set(doc) - INPUT_KEYS
     if unknown:
         raise InputError(f"unknown keys: {', '.join(sorted(unknown))}")
-    for key in ("model", "dimension", "station_corrections", "observations"):
+    for key in ("model", "station_corrections", "observations"):
         if key not in doc:
             raise InputError(f"missing key: {key}")
-    model, dim = doc["model"], doc["dimension"]
-    if model == MODEL_3D:
-        if dim != "3d":
-            raise InputError(f"model {MODEL_3D} is 3d, dimension is {dim!r}")
-    elif model in zones():
-        if dim != "1d":
-            raise InputError(f"model {model} is a 1d zone, dimension is {dim!r}")
-    else:
-        raise InputError(f"unknown model {model!r}: one of {', '.join(zones())}, {MODEL_3D}")
+    model = doc["model"]
+    # A model is a directory name under models/: checked before it is joined to a path.
+    if not isinstance(model, str) or not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9_.-]*", model):
+        raise InputError("model must be a name of letters, digits, '_', '-' and '.'")
+    if model not in models():
+        raise InputError(f"unknown model {model!r}: one of {', '.join(models())}")
     if not isinstance(doc["station_corrections"], bool):
         raise InputError("station_corrections must be true or false")
-    if doc["station_corrections"] and dim == "1d" and not os.path.exists(CORRECTIONS_1D.format(zone=model)):
-        raise InputError(f"no station corrections exist for zone {model}: set station_corrections to false")
+    if doc["station_corrections"] and not os.path.isfile(os.path.join(model_dir(model), "corrections.in")):
+        raise InputError(f"model {model} has no station corrections (no corrections.in): set station_corrections to false")
     for key in ("event_id", "origin_id"):
         if key in doc and not (isinstance(doc[key], str) and re.fullmatch(r"[A-Za-z0-9-]+", doc[key])):
             raise InputError(f"{key} must be an alphanumeric string")
@@ -114,7 +158,7 @@ def validate_input(doc):
 
 
 # ---------------------------------------------------------------------------
-# NLLOC_OBS observation file (02_qml_parser.py)
+# NLLOC_OBS observation file
 # ---------------------------------------------------------------------------
 
 def obs_line(o):
@@ -133,7 +177,7 @@ def write_obs(observations, path):
 
 
 def read_obs(path):
-    """The observations of a production NLLOC_OBS file, as the JSON input carries them."""
+    """The observations of an NLLOC_OBS file, as the JSON input carries them."""
     out = []
     with open(path) as fin:
         for line in fin:
@@ -146,98 +190,6 @@ def read_obs(path):
             out.append({"station": f[0], "channel": f[2], "onset": f[3], "phase": f[4], "first_motion": f[5],
                         "time": time_to_iso(t), "quality": int(f[10])})
     return out
-
-
-# ---------------------------------------------------------------------------
-# NLLoc control file (04_locator_nll_1d.sh, 04_locator_nll_3d.sh)
-# ---------------------------------------------------------------------------
-
-def awk_num(x):
-    """A number the way awk prints it: no decimals when integral, else %.6g."""
-    return str(int(round(x))) if abs(x - round(x)) < 1e-9 else f"{x:.6g}"
-
-
-def zone_centre(zone):
-    """lat0, lon0 and the half extents (km) of the location grid from centri_20211027.lst."""
-    with open(os.path.join(MODELS_1D_DIR, "centri_20211027.lst")) as fin:
-        for line in fin:
-            f = line.split()
-            if len(f) > 11 and f"{f[4]}_{f[2]}" == zone:
-                return float(f[11]), float(f[10]), float(f[8]), float(f[9])
-    raise InputError(f"zone {zone} not in centri_20211027.lst")
-
-
-def model_min_depth(zone):
-    with open(os.path.join(MODELS_1D_DIR, f"model_{zone}.in")) as fin:
-        for line in fin:
-            if not line.startswith("#"):
-                return float(line.split()[1])
-
-
-def locgrid_1d(zone):
-    """The LOCGRID of 04_locator_nll_1d.sh: model step x5, extent from the zone table,
-    two nodes dropped at the top and bottom, origin so that the grid is centred."""
-    _, _, half_x, half_y = zone_centre(zone)
-    model_nz, model_step, mul = 1141, 0.1, 5.0
-    step = model_step * mul
-    nx = (half_x * 2) / step + 1
-    ny = (half_y * 2) / step + 1
-    nz = ((model_nz - 1) * model_step) / step + 1 - 4
-    x0 = (nx - 1) * step / -2
-    y0 = (ny - 1) * step / -2
-    z0 = model_min_depth(zone) + step * 2
-    z0 = 0 if z0 > 0 else z0
-    return " ".join(awk_num(v) for v in (nx, ny, nz, x0, y0, z0, step, step, step))
-
-
-COMMON_TAIL = [
-    "LOCPHASEID  P   P p G PN Pn PG Pg",
-    "LOCPHASEID  S   S s G SN Sn SG Sg",
-    "LOCQUAL2ERR 0.05 0.2 0.45 0.8 99999.9",
-]
-
-
-def control_1d(zone, obs_path, time_root, out_root, corrections):
-    lat0, lon0, _, _ = zone_centre(zone)
-    include = ("" if corrections else "#") + "INCLUDE " + CORRECTIONS_1D.format(zone=zone)
-    lines = [
-        CONTROL_LINE,
-        f"TRANS SIMPLE {lat0:.6f} {lon0:.6f} 0.0",
-        "LOCSIG INGV - Istituto Nazionale di Geofisica e Vulcanologia",
-        "LOCCOM INGV-1D (NonLinLoc Location)",
-        f"LOCFILES {obs_path} NLLOC_OBS {time_root}  {out_root}",
-        "LOCHYPOUT  SAVE_NLLOC_ALL",
-        "LOCSEARCH  OCT 20 20 10 0.02 20000 5000 0 1",
-        "#LOCSEARCH  OCT 20 20 10 0.02 20000 5000 0 1",
-        f"LOCGRID  {locgrid_1d(zone)}  PROB_DENSITY  SAVE",
-        "LOCMETH EDT_OT_WT 9999.0 3 -1 -1 -1 -1 -1. 1",
-        "LOCGAU 0.2 0.0",
-        "LOCGAU2 0.05 0.1 5.0",
-    ] + COMMON_TAIL + [include]
-    return "\n".join(lines) + "\n"
-
-
-def control_3d(obs_path, time_root, out_root, corrections, model_hdr):
-    # The grid is the whole model grid as its header states it, with Z0 forced to -4.
-    with open(model_hdr) as fin:
-        f = fin.readline().split()
-    grid = " ".join(f[0:5] + ["-4"] + f[6:9])
-    include = ("" if corrections else "#") + "INCLUDE " + CORRECTIONS_3D
-    lines = [
-        CONTROL_LINE,
-        "TRANS  TRANS_MERC WGS-84  0.0 15.0  0.0",
-        "LOCSIG INGV - Istituto Nazionale di Geofisica e Vulcanologia",
-        "LOCCOM INGV-3d (NonLinLoc Location)",
-        f"LOCFILES {obs_path} NLLOC_OBS {time_root}  {out_root}",
-        "LOCHYPOUT  SAVE_NLLOC_ALL",
-        "#LOCHYPOUT SAVE_NLLOC_ALL NLL_FORMAT_VER_2 # Valutare l'uso del formato 2",
-        "LOCSEARCH OCT 24 24 20 0.01 50000 5000 0 1",
-        f"LOCGRID  {grid}  PROB_DENSITY  SAVE",
-        "LOCMETH EDT_OT_WT 9999.0 3 150 0 -1.80 300 -1 1",
-        "LOCGAU 0.2 0.0",
-        "LOCGAU2 0.01 0.05 2.0 # 3D",
-    ] + COMMON_TAIL + [include]
-    return "\n".join(lines) + "\n"
 
 
 # ---------------------------------------------------------------------------

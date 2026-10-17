@@ -1,6 +1,5 @@
 {
   "model": "Fascia-Tirrenica_9b",
-  "dimension": "1d",
   "station_corrections": true,
   "event_id": "47190522",
   "origin_id": "147550641",

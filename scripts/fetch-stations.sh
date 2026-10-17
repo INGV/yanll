@@ -7,7 +7,7 @@ set -euo pipefail
 
 cd "$(dirname "${BASH_SOURCE[0]}")/.."
 readonly URL="http://webservices.ingv.it/deprecated/fdsnws/station/1/query?level=station&format=text&authoritative=any&visibility=any"
-readonly OUT="stations/fdsnws-station.txt"
+readonly OUT="config/ingv/stations.txt"
 readonly TMP="${OUT}.tmp"
 
 {

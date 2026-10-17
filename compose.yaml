@@ -1,13 +1,23 @@
-# Local runs. YANLL_DATA is the host directory that holds the model grids, the travel-time
-# grids and the 3D model body (./data by default, a few GB per zone in use). Files under
-# it are written by the container's user: root unless YANLL_USER is set to uid:gid.
+# Local runs. YANLL_CONFIG is the host directory with the configuration (station catalog
+# and control-file templates, docs/configuration.md), config/ingv by default, mounted
+# read-only at /config. YANLL_DATA is the host directory that holds the model grids, the
+# travel-time grids and the 3D model body (./data by default, a few GB per model in
+# use); files under it are written by the container's user, root unless YANLL_USER is
+# set to uid:gid. The other mounts serve the checks: tests and scripts are not in the
+# image, fixtures and reference are the oracles, docs receives the comparison report.
+# The platform is pinned: the published image is linux/amd64 only, and NLLoc built for
+# arm64 (an Apple Silicon host) loops forever at the end of the observation file.
 services:
   yanll:
     build: .
+    platform: linux/amd64
     image: yanll:latest
     user: ${YANLL_USER:-0:0}
     volumes:
       - ${YANLL_DATA:-./data}:/data
+      - ${YANLL_CONFIG:-./config/ingv}:/config:ro
+      - ./tests:/tests:ro
+      - ./scripts:/scripts:ro
       - ./fixtures:/fixtures:ro
       - ./reference:/reference:ro
       - ./docs:/docs

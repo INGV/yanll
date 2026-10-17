@@ -1,6 +1,5 @@
 {
   "model": "Fascia-Adriatica_6b",
-  "dimension": "1d",
   "station_corrections": true,
   "event_id": "47179932",
   "origin_id": "147525951",
