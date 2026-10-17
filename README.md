@@ -44,7 +44,7 @@ command (or the shell script it names), as listed below.
 ## The image
 
 ```
-docker pull ingv/yanll:latest        # last release; also :X.Y.Z per release and :develop
+docker pull ingv/yanll:latest        # last release (from the first vX.Y.Z tag); also :X.Y.Z and :develop
 docker compose build                 # the same image from this checkout, as yanll:latest
 ```
 

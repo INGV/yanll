@@ -1,15 +1,16 @@
 # Release Notes
 
 ### Release 2.0.0-dev (2026-10-17)
-  - feat: move the INGV configuration out of the engine into config/ingv (YANLL_CONFIG mount, NLL templates)
-  - feat: generate config/ingv from reference/ with scripts/generate-ingv-config.py; stations.txt lives there
-  - feat: drop `dimension` from the JSON input, the model directory says what it is (input-{1d,3d}.json regenerated)
-  - feat: one rule for duplicate station codes, first catalog line wins; grids in YANLL_DATA/{model,time}/<name>/
-  - feat: add a synthetic example configuration located end to end (config/example, Time2EQ in the image)
-  - build: the image holds NLL and bin/ only; tests and yanll-compare run from compose mounts; platform linux/amd64
+  - feat: move the INGV configuration out of the engine into config/ingv (YANLL_CONFIG templates)
+  - feat: generate config/ingv from reference/ (scripts/generate-ingv-config.py), stations.txt there
+  - feat: drop `dimension` from the JSON input, the model says what it is (fixture inputs redone)
+  - feat: duplicate station codes take the first catalog line; grids in YANLL_DATA/{model,time}/
+  - feat: add a synthetic example configuration located end to end (config/example, Time2EQ)
+  - build: image holds NLL and bin/ only; tests and yanll-compare run from mounts; linux/amd64 only
   - ci: locate the example configuration on every push
-  - ci: publish the image to Docker Hub as ingv/yanll (develop -> :develop, vX.Y.Z -> :X.Y.Z and :latest)
-  - docs: configuration contract (docs/configuration.md), README and json-schema for release 2.0.0
+  - ci: publish to Docker Hub as ingv/yanll (develop -> :develop, vX.Y.Z -> :X.Y.Z and :latest)
+  - docs: configuration contract (docs/configuration.md), README and json-schema for 2.0.0
+  - docs: rerun the comparison with production on the 2.0.0 engine, 40 of 40, rows unchanged
   - docs: add the NLLoc input check to the comparison web page
   - ci: run the reference check and the JSON I/O tests on every push, the comparison on demand
 
