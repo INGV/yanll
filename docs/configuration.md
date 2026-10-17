@@ -116,7 +116,7 @@ ${YANLL_DATA}/
   model/<name>/model.{P,S}.mod.{hdr,buf}      model grid: Vel2Grid output, or put there by the site
   model/<name>/vel2grid.{P,S}.in              the rendered Vel2Grid control files
   time/<name>/time.{P,S}.<STA>.time.{hdr,buf} travel-time grids, one pair per station and phase
-  time/<name>/tmp/                            runs in progress: rendered control files, logs, Grid2Time output before it moves
+  time/<name>/tmp/                            runs in progress (rendered control files, logs, Grid2Time output before it moves) and Grid2Time's copy of the model grid, time.{P,S}.mod.*
   locate/<run>/                               work directory of a location, removed on success unless --keep
   compare/                                    work directories of tests/yanll-compare
 ```

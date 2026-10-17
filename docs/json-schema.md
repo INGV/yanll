@@ -69,7 +69,7 @@ production never used the INGV epicentre for anything but the choice of the zone
 
 ## Output
 
-The values below are those of the production run of the example event, except
+The values below are those of the production run of the fixture event `47442632_147825511`, except
 `nll.version`, which is the container's; the container reproduces them within the
 project tolerance (see `docs/comparison-report.md`), not to the digit.
 

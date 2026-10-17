@@ -51,7 +51,7 @@ docker compose build                 # the same image from this checkout, as yan
 The build clones https://github.com/ut-beg-texnet/NonLinLoc at the commit pinned in the
 `Dockerfile` (`NLL_COMMIT`), compiles it with CMake on `debian:bookworm-slim` and copies
 `NLLoc`, `Vel2Grid`, `Grid2Time`, `GridCascadingDecimate` and `Time2EQ` into the runtime
-image with `bin/`. The image is about 150 MB, `linux/amd64` only: the compose file pins
+image with `bin/`. The image is about 120 MB, `linux/amd64` only: the compose file pins
 the platform, so on an Apple Silicon host it builds and runs under emulation (NLLoc
 compiled for arm64 never terminates). Its OCI labels record the yanll revision and the
 NLL commit it was built from (NLL is GPL-3). Bump the commit on purpose, in its own
@@ -59,8 +59,10 @@ commit, and rerun the comparison: that is the only way to see what a bump change
 
 Inside the image: `YANLL_CONFIG=/config` is where the configuration is mounted,
 read-only; `YANLL_DATA=/data` is the writable directory for grids and work files. A
-container without a configuration mounted does nothing: every tool stops with a message
-that names the missing file and `docs/configuration.md`.
+container without a configuration mounted does nothing: `yanll-locate` and
+`yanll-make-grids` stop with exit code 2 and a message that names the missing file and
+`docs/configuration.md` (`yanll-obs2json` only converts a file and reads no
+configuration).
 
 ## Configuring a site
 
@@ -68,7 +70,10 @@ A configuration is one directory: a station catalog in FDSN station text and, pe
 model, NLL control-file templates whose few `@NAME@` placeholders yanll fills (the
 observation file, the grid roots, the corrections `INCLUDE`, the station `GTSRCE`
 line). The contract, with every placeholder and what yanll expects of each template, is
-`docs/configuration.md`. The shortest way to see it work is the example.
+`docs/configuration.md`. With `compose.yaml`, the host directory to mount is chosen by
+the `YANLL_CONFIG` variable on the command line (`config/ingv` when unset), the data
+directory by `YANLL_DATA` (`./data`), the container's user by `YANLL_USER` (root). The
+shortest way to see it work is the example.
 
 ### One location end to end, on the example
 
@@ -81,11 +86,12 @@ longitude 10.08, depth 8.0 km, origin time 2026-01-01T00:00:00Z. Locating it:
 YANLL_CONFIG=./config/example docker compose run --rm -T yanll yanll-locate /config/event/event.json > out.json
 ```
 
-or, without this checkout, with the published image and two mounts (the data directory
-must be writable by the container's user, see below):
+or, without this checkout, with the published image and two mounts (the configuration
+read-only, the data directory writable by the user the container runs as; without
+`--user` it runs as root and the grids come out root-owned):
 
 ```
-docker run --rm -v "$PWD/config/example:/config:ro" -v "$PWD/data:/data" ingv/yanll:latest yanll-locate /config/event/event.json
+docker run --rm --user "$(id -u):$(id -g)" -v "$PWD/config/example:/config:ro" -v "$PWD/data:/data" ingv/yanll:latest yanll-locate /config/event/event.json
 ```
 
 The first run builds the model grid (Vel2Grid) and twelve travel-time grids (Grid2Time)
@@ -216,8 +222,8 @@ need the image, the data directory and, the first time, a few minutes of grid
 generation for one zone.
 
 To see that the image holds nothing of a site: `docker run --rm yanll:latest ls /opt/yanll`
-lists `bin` only, and any tool run without a configuration mounted exits with code 2
-naming `docs/configuration.md`.
+lists `bin` only, and `yanll-locate` or `yanll-make-grids` run without a configuration
+mounted exit with code 2 naming `docs/configuration.md`.
 
 ## CI and Docker Hub
 
