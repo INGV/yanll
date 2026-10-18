@@ -1,5 +1,8 @@
 # Release Notes
 
+### Release 2.2.0 (2026-10-18)
+  - ci: put the reference check in the resource group too, its checkout alone wiped a running test
+
 ### Release 2.1.0 (2026-10-18)
   - ci: run the docker jobs one at a time, the shared runner reuses one checkout for parallel jobs
   - ci: drop the manual comparison job, no runner has the data; it runs by hand on nll-dev (README)

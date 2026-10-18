@@ -11,12 +11,12 @@
 # The docker jobs use docker-in-docker, which needs a privileged runner: the shared
 # INGV runners (grunner1, grunner2) are set up that way, as spada-v2 already relies on.
 #
-# The jobs that run the image share one resource group, so they run one at a time
-# across pipelines: the shared DockerSwarm runner checks every job of this project out
-# in the same /builds/nll/yanll (a volume, so that the dind daemon sees the compose
-# mounts), and two of them running at once clobber each other, the checkout of one
-# wiping the data/ the other is locating in (seen on 2026-10-18, both failure modes).
-# It costs about a minute per pipeline.
+# Every job is in one resource group, so the jobs of this project run one at a time
+# across pipelines: the shared DockerSwarm runner checks every job out in the same
+# /builds/nll/yanll (a volume, so that the dind daemon sees the compose mounts), and
+# the checkout of one job wipes the data/ another is locating in. The reference check
+# runs no docker but checks out, and its checkout alone broke a running test (seen on
+# 2026-10-18, three times). It costs about a minute per pipeline.
 
 stages:
   - check
@@ -26,6 +26,7 @@ stages:
 check-reference:
   stage: check
   image: debian:bookworm-slim
+  resource_group: docker
   script:
     - scripts/check-reference.sh
 
