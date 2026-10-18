@@ -3,10 +3,10 @@
 # image. The tests are the input check the researchers asked for: the observation file
 # and the control file rendered from the JSON must be production's byte for byte, paths
 # aside, for every fixture event in 1D and 3D; one event is then located to prove the
-# chain runs. The comparison with production needs the 3D model body and hours of grid
-# generation, so it is a manual job that keeps the report as an artifact and is
-# meaningful only on a runner that has the data. On develop and on release tags the
-# tested image is published to Docker Hub.
+# chain runs. The comparison with production is not here: it needs the 3D model body
+# and the grids, which no runner has, so it runs by hand on nll-dev (README, Comparing
+# with production). On develop and on release tags the tested image is published to
+# Docker Hub.
 #
 # The docker jobs use docker-in-docker, which needs a privileged runner: the shared
 # INGV runners (grunner1, grunner2) are set up that way, as spada-v2 already relies on.
@@ -16,13 +16,11 @@
 # in the same /builds/nll/yanll (a volume, so that the dind daemon sees the compose
 # mounts), and two of them running at once clobber each other, the checkout of one
 # wiping the data/ the other is locating in (seen on 2026-10-18, both failure modes).
-# It costs about a minute per pipeline. The manual comparison stays out of the group:
-# its hours would queue every push behind it.
+# It costs about a minute per pipeline.
 
 stages:
   - check
   - test
-  - compare
   - publish
 
 check-reference:
@@ -59,21 +57,6 @@ check-example:
     YANLL_CONFIG: ./config/example
   script:
     - docker compose run --rm yanll /scripts/check-example.sh
-
-compare:
-  extends: .docker
-  stage: compare
-  when: manual
-  timeout: 8h
-  script:
-    - docker compose run --rm yanll /tests/yanll-compare
-  artifacts:
-    when: always
-    expire_in: 30 days
-    paths:
-      - docs/comparison-report.md
-      - docs/comparison-table.md
-      - docs/comparison-table.json
 
 # The project has no container registry, so the image tested above cannot be handed
 # over: this job rebuilds it from the same pinned sources, with the OCI labels set from
