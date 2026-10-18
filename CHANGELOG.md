@@ -1,7 +1,7 @@
 # Release Notes
 
 ### Release 2.3.0-dev (2026-10-18)
-  - . . .
+  - docs: add a quick start to the README, pull to first location with the published image
 
 ### Release 2.2.0 (2026-10-18)
   - ci: put the reference check in the resource group too, its checkout alone wiped a running test

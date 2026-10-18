@@ -64,6 +64,115 @@ container without a configuration mounted does nothing: `yanll-locate` and
 `docs/configuration.md` (`yanll-obs2json` only converts a file and reads no
 configuration).
 
+## Quick start
+
+The steps from an empty machine to a located event with the INGV configuration, with
+plain `docker run` and nothing of this project but its `config/ingv/` directory and one
+fixture. They were run as written on `nll-dev.int.ingv.it` (Docker 25, 2 CPUs) on
+2026-10-18, where the times below come from. On Apple Silicon add `--platform
+linux/amd64` to every `docker run`: the image is amd64 only and runs under emulation
+(without the flag Docker prints a warning and runs it all the same, more slowly).
+
+**1. Pull the image.** `:latest` is the last release, `:X.Y.Z` a given one, `:develop`
+the development branch.
+
+```
+docker pull ingv/yanll:latest
+```
+
+**2. Make a working directory and get the configuration.** The project on
+`gitlab.rm.ingv.it` is private: the clone needs an account that can read it; otherwise
+have `config/ingv/` (650 kB, the station catalog and the templates of the 18 models)
+copied to you and put it at `src/config/ingv/`. `data/` receives the grids; the
+container writes it as the user named by `--user` below, so the files stay yours.
+
+```
+mkdir -p ~/yanll/data && cd ~/yanll
+git clone https://gitlab.rm.ingv.it/nll/yanll.git src
+```
+
+On nll-dev put `data/` in a directory of your own under `/mnt/nll` (the root disk is
+30 GB and one zone takes several GB), not in `/mnt/nll/yanll`: that is the data
+directory of the comparison with production, and grids added there change what it
+compares.
+
+**3. Write the input.** One JSON document: the model, which with this configuration is
+a 1D zone (`Alpi-Occidentali_1` ... `Sardegna_12`, the directory names under
+`src/config/ingv/models/`) or `TOMORAMA-2013`; whether to apply the station corrections;
+and the arrivals, each with station code, phase, time and pick class
+(`docs/json-schema.md` has every key). The first one can be a production event from the
+fixtures: 2026-10-04 in `Fascia-Adriatica_6a`, 85 arrivals at 61 stations, located by
+production at 43.1893 N, 13.4252 E, 16.4 km, 20:12:26.17.
+
+```
+cp src/fixtures/events/47442632_147825511/input-1d.json .
+```
+
+An `NLLOC_OBS` observation file of your own becomes an input document with
+`yanll-obs2json`, which reads no configuration:
+
+```
+docker run --rm -v "${PWD}:/work:ro" ingv/yanll:latest yanll-obs2json --model Fascia-Adriatica_6a /work/<file>.phsnll > input.json
+```
+
+**4. Locate.** The input goes in on stdin (`-i` and `-`), the output document comes out
+on stdout; the configuration is mounted read-only at `/config`, the data directory at
+`/data`.
+
+```
+docker run --rm -i --user "$(id -u):$(id -g)" \
+  -v "${PWD}/src/config/ingv:/config:ro" -v "${PWD}/data:/data" \
+  ingv/yanll:latest yanll-locate - < input-1d.json > out-1d.json
+```
+
+The first run in a zone is silent for a while: it builds the zone's model grid
+(Vel2Grid, 110 MB) and a P and an S travel-time grid for every station of the input
+(Grid2Time, 55 MB each), and every later run finds them in `data/`. For this event on
+nll-dev: first run about two minutes and 6.5 GB, every later run 3 s. Exit code 0 is a
+location; 1 means NLLoc ran and did not locate (`nll.status` and `nll.message` say why);
+2 a wrong input or configuration, with the message on stderr; 3 a failure of NLL.
+
+**5. Read the result.** The document carries the hypocentre (`origin`), the quality and
+uncertainty blocks of the `.hyp` (`quality`, `uncertainty`), one entry per phase
+(`phases`) and the control file NLLoc ran (`nll.control_file`); `docs/json-schema.md`
+describes every key. To see the essentials:
+
+```
+python3 -c 'import json, sys; d = json.load(open(sys.argv[1])); o = d["origin"]; q = d["quality"]; print(d["nll"]["status"], o["time"], o["latitude"], o["longitude"], o["depth"], q["phases_used"], q["rms"])' out-1d.json
+```
+
+prints, for the run above, `LOCATED 2026-10-04T20:12:26.165858Z 43.188891 13.424617
+16.425 39 0.310227`: 60 m and 7 ms from production (`jq .origin out-1d.json` where `jq`
+is installed).
+
+**6. 3D, when needed.** `TOMORAMA-2013` has no `vel2grid.in`: its model grid is the
+production tomography, 1.2 GB, not in the repository. Copy the production pair
+`TOMORAMA_zmax800_deep.{P,S}.mod.{hdr,buf}` (`/opt/nll/model_TOMORAMA-2013/` on the
+production host, checksums in `docs/production-flow.md` section 2.2) into the data
+directory under the names yanll expects:
+
+```
+mkdir -p data/model/TOMORAMA-2013
+cp <dir>/TOMORAMA_zmax800_deep.P.mod.hdr data/model/TOMORAMA-2013/model.P.mod.hdr
+cp <dir>/TOMORAMA_zmax800_deep.P.mod.buf data/model/TOMORAMA-2013/model.P.mod.buf
+cp <dir>/TOMORAMA_zmax800_deep.S.mod.hdr data/model/TOMORAMA-2013/model.S.mod.hdr
+cp <dir>/TOMORAMA_zmax800_deep.S.mod.buf data/model/TOMORAMA-2013/model.S.mod.buf
+```
+
+Then an input with `"model": "TOMORAMA-2013"` (`input-3d.json` in every fixture
+directory) locates with the same command as step 4. The first run builds one cascading
+grid per station and phase, 22 MB each: the 18 stations of `46762511_147809831` took
+23 minutes on nll-dev's two CPUs. It builds them for every station of the input, so the
+3D location of a fixture event uses more phases than production's, which had no grid
+for the stations added since 2023 (`fixtures/events/README.md`, column `nogrid3d`), and
+differs from it by design.
+
+**7. Next.** `docs/json-schema.md` for the two documents, `docs/configuration.md` for
+what the configuration is and what to delete when a station or a model changes, section
+The data directory below for what is under `data/`. Everything else in this README
+(compose, the tests, the comparison with production) works from a checkout of the
+project.
+
 ## Configuring a site
 
 A configuration is one directory: a station catalog in FDSN station text and, per
