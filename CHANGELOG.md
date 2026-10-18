@@ -1,7 +1,7 @@
 # Release Notes
 
 ### Release 2.1.0-dev (2026-10-18)
-  - . . .
+  - ci: run the docker jobs one at a time, the shared runner reuses one checkout for parallel jobs
 
 ### Release 2.0.0 (2026-10-18)
   - feat: move the INGV configuration out of the engine into config/ingv (YANLL_CONFIG templates)

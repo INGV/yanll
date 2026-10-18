@@ -228,7 +228,10 @@ mounted exit with code 2 naming `docs/configuration.md`.
 ## CI and Docker Hub
 
 GitLab CI (`.gitlab-ci.yml`) runs on every push: the reference check, the JSON I/O tests
-and the example check, each in a freshly built image. On `develop` the pipeline then
+and the example check, each in a freshly built image. The jobs that run the image are
+serialized with a GitLab resource group: the shared runners check every job of a
+project out in the same directory, and parallel jobs clobbered each other's `data/`.
+On `develop` the pipeline then
 publishes the image as `ingv/yanll:develop`; on a tag `vX.Y.Z` as `ingv/yanll:X.Y.Z` and
 `ingv/yanll:latest`; other branches build and test only. The publish job rebuilds the
 image with the OCI labels set from the pipeline (`org.opencontainers.image.revision`,

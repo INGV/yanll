@@ -10,6 +10,14 @@
 #
 # The docker jobs use docker-in-docker, which needs a privileged runner: the shared
 # INGV runners (grunner1, grunner2) are set up that way, as spada-v2 already relies on.
+#
+# The jobs that run the image share one resource group, so they run one at a time
+# across pipelines: the shared DockerSwarm runner checks every job of this project out
+# in the same /builds/nll/yanll (a volume, so that the dind daemon sees the compose
+# mounts), and two of them running at once clobber each other, the checkout of one
+# wiping the data/ the other is locating in (seen on 2026-10-18, both failure modes).
+# It costs about a minute per pipeline. The manual comparison stays out of the group:
+# its hours would queue every push behind it.
 
 stages:
   - check
@@ -39,12 +47,14 @@ check-reference:
 test:
   extends: .docker
   stage: test
+  resource_group: docker
   script:
     - docker compose run --rm yanll python3 -m unittest discover -s /tests -v
 
 check-example:
   extends: .docker
   stage: test
+  resource_group: docker
   variables:
     YANLL_CONFIG: ./config/example
   script:
@@ -73,6 +83,7 @@ compare:
 publish:
   extends: .docker
   stage: publish
+  resource_group: docker
   needs:
     - check-reference
     - test
