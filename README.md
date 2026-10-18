@@ -199,6 +199,29 @@ show what the missing grids cost. The report lists, per event and dimension, bot
 locations, the differences, the number of phases used and the largest offset between
 the station coordinates of the two runs.
 
+No CI runner has the 3D model body of `TOMORAMA-2013` or the grids, so the comparison
+is not a pipeline job: it runs by hand on `nll-dev.int.ingv.it`, where the clone
+`/home/sysop/gitwork/_nll/yanll` and the data directory `/mnt/nll/yanll` hold both.
+The clone pulls with a read-only token, so push first, then:
+
+```
+ssh sysop@nll-dev.int.ingv.it
+cd /home/sysop/gitwork/_nll/yanll && git pull
+export YANLL_DATA=/mnt/nll/yanll YANLL_USER=1000:1000
+docker compose build
+nohup docker compose run --rm -T yanll /tests/yanll-compare > ~/yanll-compare.log 2>&1 &
+```
+
+With the grids in place the run is NLLoc only, about 40 minutes for the 21 events;
+after a grid invalidation it generates them first, about 6 hours for the 3D stations on
+the two CPUs there. `-T` keeps compose from asking for a terminal under `nohup`. The
+report lands in `docs/comparison-report.md` of that clone, which cannot push: copy it
+to the development machine and commit it from there.
+
+```
+scp sysop@nll-dev.int.ingv.it:gitwork/_nll/yanll/docs/comparison-report.md docs/
+```
+
 ## Checking
 
 ```
@@ -216,8 +239,9 @@ byte, paths aside, for all 21 events in 1D and 3D; the committed input documents
 what `yanll-obs2json` writes; one 1D location reproduces production within tolerance;
 malformed inputs are rejected; a missing configuration is refused with a message naming
 the documentation); the example located end to end against its known hypocenter; and
-the comparison with production (hours of grid generation the first time, minutes once
-the grids exist), whose report is committed as `docs/comparison-report.md`. The tests
+the comparison with production, run on `nll-dev` where the 3D model body and the grids
+are (section Comparing with production), whose report is committed as
+`docs/comparison-report.md`. The tests
 need the image, the data directory and, the first time, a few minutes of grid
 generation for one zone.
 
@@ -228,11 +252,14 @@ mounted exit with code 2 naming `docs/configuration.md`.
 ## CI and Docker Hub
 
 GitLab CI (`.gitlab-ci.yml`) runs on every push: the reference check, the JSON I/O tests
-and the example check, each in a freshly built image. On `develop` the pipeline then
+and the example check, each in a freshly built image. The jobs that run the image are
+serialized with a GitLab resource group: the shared runners check every job of a
+project out in the same directory, and parallel jobs clobbered each other's `data/`.
+On `develop` the pipeline then
 publishes the image as `ingv/yanll:develop`; on a tag `vX.Y.Z` as `ingv/yanll:X.Y.Z` and
 `ingv/yanll:latest`; other branches build and test only. The publish job rebuilds the
 image with the OCI labels set from the pipeline (`org.opencontainers.image.revision`,
 `.version`, `.source`, plus the NLL repository and commit) and logs in to Docker Hub
 with the project CI variables `DOCKER_HUB_USERNAME` and `DOCKER_HUB_ACCESS_TOKEN`. The
-comparison with production is a manual job of the same pipeline, meaningful only on a
-runner that has the 3D model body and the grids (the shared runners have neither).
+comparison with production is not in the pipeline: no runner has the 3D model body or
+the grids, so it runs by hand on `nll-dev` (section Comparing with production).
