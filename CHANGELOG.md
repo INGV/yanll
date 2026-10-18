@@ -1,6 +1,6 @@
 # Release Notes
 
-### Release 2.2.0-dev (2026-10-18)
+### Release 2.2.0 (2026-10-18)
   - ci: put the reference check in the resource group too, its checkout alone wiped a running test
 
 ### Release 2.1.0 (2026-10-18)
