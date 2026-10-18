@@ -1,6 +1,6 @@
 # Release Notes
 
-### Release 2.0.0-dev (2026-10-18)
+### Release 2.0.0 (2026-10-18)
   - feat: move the INGV configuration out of the engine into config/ingv (YANLL_CONFIG templates)
   - feat: generate config/ingv from reference/ (scripts/generate-ingv-config.py), stations.txt there
   - feat: drop `dimension` from the JSON input, the model says what it is (fixture inputs redone)
