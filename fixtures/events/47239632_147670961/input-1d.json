@@ -1,6 +1,5 @@
 {
   "model": "Pianura-Padana_4",
-  "dimension": "1d",
   "station_corrections": true,
   "event_id": "47239632",
   "origin_id": "147670961",

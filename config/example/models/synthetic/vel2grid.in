@@ -1,0 +1,10 @@
+# Vel2Grid template of the example model: a 2D grid (distance, depth) 200 km across and
+# 60 km deep at 0.25 km, the velocities of velocity.in. yanll fills @MODEL@, @PHASE@ and
+# @CONFIG@ and runs it once per phase when the model grid is missing.
+CONTROL 1 54321
+TRANS SIMPLE 45.0 10.0 0.0
+VGOUT @MODEL@
+VGTYPE @PHASE@
+VGGRID 2 801 241 0.0 0.0 -2.0 0.25 0.25 0.25 SLOW_LEN
+INCLUDE @CONFIG@/velocity.in
+GTMODE GRID2D ANGLES_NO

@@ -1,0 +1,15 @@
+# Station delays of the example (LOCDELAY station phase nReadings delay): all zero, the
+# synthetic picks are exact. The file exists so that station_corrections true is
+# accepted and its INCLUDE line exercised.
+LOCDELAY ST01 P 1 0.0
+LOCDELAY ST01 S 1 0.0
+LOCDELAY ST02 P 1 0.0
+LOCDELAY ST02 S 1 0.0
+LOCDELAY ST03 P 1 0.0
+LOCDELAY ST03 S 1 0.0
+LOCDELAY ST04 P 1 0.0
+LOCDELAY ST04 S 1 0.0
+LOCDELAY ST05 P 1 0.0
+LOCDELAY ST05 S 1 0.0
+LOCDELAY ST06 P 1 0.0
+LOCDELAY ST06 S 1 0.0

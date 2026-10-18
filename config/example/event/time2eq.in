@@ -1,0 +1,24 @@
+# Time2EQ control of the example event: exact P and S arrival times at the six stations
+# from the hypocenter below, computed on the same travel-time grids yanll uses, so that
+# yanll-locate must recover it. scripts/make-example-event.sh appends the EQFILES line
+# (time grid root, output file), runs Time2EQ and turns the output into event/event.json;
+# the origin time of the event is 2026-01-01T00:00:00Z by that script's convention.
+CONTROL 1 54321
+TRANS SIMPLE 45.0 10.0 0.0
+EQMODE SRCE_TO_STA
+# EQSRCE label LATLON latitude longitude depth_km elevation_km
+EQSRCE EXAMPLE LATLON 45.05 10.08 8.0 0.0
+# EQSTA station phase errorType error reportType report: no noise, pick class 0
+EQSTA ST01 P GAU 0.0 QUAL 0
+EQSTA ST01 S GAU 0.0 QUAL 0
+EQSTA ST02 P GAU 0.0 QUAL 0
+EQSTA ST02 S GAU 0.0 QUAL 0
+EQSTA ST03 P GAU 0.0 QUAL 0
+EQSTA ST03 S GAU 0.0 QUAL 0
+EQSTA ST04 P GAU 0.0 QUAL 0
+EQSTA ST04 S GAU 0.0 QUAL 0
+EQSTA ST05 P GAU 0.0 QUAL 0
+EQSTA ST05 S GAU 0.0 QUAL 0
+EQSTA ST06 P GAU 0.0 QUAL 0
+EQSTA ST06 S GAU 0.0 QUAL 0
+EQQUAL2ERR 0.05 0.1 0.2 0.5 99999.9

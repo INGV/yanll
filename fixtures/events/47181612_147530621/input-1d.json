@@ -1,6 +1,5 @@
 {
   "model": "Fascia-Appenninica_5b",
-  "dimension": "1d",
   "station_corrections": true,
   "event_id": "47181612",
   "origin_id": "147530621",

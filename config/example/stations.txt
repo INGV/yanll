@@ -1,0 +1,8 @@
+# Six fictional stations of the yanll example, network XX, around 45.0N 10.0E.
+#Network | Station | Latitude | Longitude | Elevation | SiteName | StartTime | EndTime
+XX|ST01|45.3000|10.0000|400.0|North|2020-01-01T00:00:00|
+XX|ST02|45.0000|10.4000|250.0|East|2020-01-01T00:00:00|
+XX|ST03|44.7200|10.0500|100.0|South|2020-01-01T00:00:00|
+XX|ST04|45.0200|9.6200|600.0|West|2020-01-01T00:00:00|
+XX|ST05|45.2000|10.3000|900.0|North-east|2020-01-01T00:00:00|
+XX|ST06|44.8500|9.7500|300.0|South-west|2020-01-01T00:00:00|

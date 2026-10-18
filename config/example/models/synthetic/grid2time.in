@@ -1,0 +1,8 @@
+# Grid2Time template of the example model: yanll fills @MODEL@, @TIME@, @PHASE@ and the
+# GTSRCE line of one station in @STATIONS@, and runs it once per station and phase.
+CONTROL 1 54321
+TRANS SIMPLE 45.0 10.0 0.0
+GTFILES @MODEL@ @TIME@ @PHASE@
+GTMODE GRID2D ANGLES_NO
+@STATIONS@
+GT_PLFD 1.0e-3 0

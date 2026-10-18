@@ -1,5 +1,20 @@
 # Release Notes
 
+### Release 2.0.0 (2026-10-18)
+  - feat: move the INGV configuration out of the engine into config/ingv (YANLL_CONFIG templates)
+  - feat: generate config/ingv from reference/ (scripts/generate-ingv-config.py), stations.txt there
+  - feat: drop `dimension` from the JSON input, the model says what it is (fixture inputs redone)
+  - feat: duplicate station codes take the first catalog line; grids in YANLL_DATA/{model,time}/
+  - feat: add a synthetic example configuration located end to end (config/example, Time2EQ)
+  - fix: exit 2 on every configuration error of yanll-locate, pointing at docs/configuration.md
+  - build: image holds NLL and bin/ only; tests and yanll-compare run from mounts; linux/amd64 only
+  - ci: locate the example configuration on every push
+  - ci: publish to Docker Hub as ingv/yanll (develop -> :develop, vX.Y.Z -> :X.Y.Z and :latest)
+  - docs: configuration contract (docs/configuration.md), README and json-schema for 2.0.0
+  - docs: rerun the comparison with production on the 2.0.0 engine, 40 of 40, rows unchanged
+  - docs: add the NLLoc input check to the comparison web page
+  - ci: run the reference check and the JSON I/O tests on every push, the comparison on demand
+
 ### Release 1.0.0 (2026-10-16)
   - docs: describe the production NLL flow on nll.int.ingv.it with its scripts and 21 fixtures
   - feat: build NonLinLoc 7.1.05 (7a62fa46) in a Docker image with the 17 1D models and corrections

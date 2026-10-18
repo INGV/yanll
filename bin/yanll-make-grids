@@ -1,46 +1,80 @@
 #!/usr/bin/env bash
-# Generate what a location needs under ${YANLL_DATA}: the model grid of a 1D zone
-# (Vel2Grid, once per zone) and the travel-time grids of the stations that do not have
-# one yet (Grid2Time, one per station and phase; in 3D followed by
-# GridCascadingDecimate). This is what Auto_Create_Model_Grid_NewZones.sh,
-# 03_test_stations_3d.sh and run_casc_grid.sh do in production, with the same control
-# files except ANGLES_NO: production writes angle grids and never reads them.
+# Generate what a location needs under ${YANLL_DATA}: the model grid of the model
+# (Vel2Grid, once, when the model has a vel2grid.in template; otherwise the site put the
+# grid there by hand) and the travel-time grids of the stations that have none yet
+# (Grid2Time, one run per station and phase, followed by GridCascadingDecimate when the
+# model has a cascade file). Every control file is the site's template under
+# ${YANLL_CONFIG}/models/<model>/ with its placeholders filled; yanll adds no keyword of
+# its own. The contract is docs/configuration.md.
 #
 # Usage: yanll-make-grids <model> <station>...
-#   <model>   a zone nickname (model_<nickname>.in in /opt/yanll/models_1d) or TOMORAMA-2013
-#   <station> station codes; coordinates come from the fdsnws snapshot. A code with
-#             several matches is handled as in production: in 1D every match is run and
-#             the last one wins, in 3D only the first is run
+#   <model>   a directory under ${YANLL_CONFIG}/models/
+#   <station> station codes, looked up in ${YANLL_CONFIG}/stations.txt
+#
+# Layout written: ${YANLL_DATA}/model/<model>/model.{P,S}.mod.{hdr,buf} and
+# ${YANLL_DATA}/time/<model>/time.{P,S}.<STA>.time.{hdr,buf}; tmp/ under the latter holds
+# the rendered control files and logs of the runs in progress (kept when one fails).
 set -euo pipefail
 
 readonly DATA="${YANLL_DATA:-/data}"
-readonly MODELS_1D="/opt/yanll/models_1d"
-readonly STATIONS="/opt/yanll/stations/fdsnws-station.txt"
-readonly MODEL_3D="TOMORAMA-2013"
+readonly CONFIG="${YANLL_CONFIG:-/config}"
+readonly DOCS="docs/configuration.md"
 
 if [[ $# -lt 2 ]]; then
     echo "Usage: $0 <model> <station>..." >&2
     exit 2
 fi
-MODEL="$1"
+readonly MODEL="$1"
 shift
+readonly MODELCFG="${CONFIG}/models/${MODEL}"
+readonly STATIONS="${CONFIG}/stations.txt"
+readonly MODELDIR="${DATA}/model/${MODEL}"
+readonly TIMEDIR="${DATA}/time/${MODEL}"
+readonly TMP="${TIMEDIR}/tmp"
 
-# Station lines in NLL GTSRCE form, same printf as 03_test_stations_3d.sh. A station
-# absent from the snapshot is reported and skipped: NLLoc then gives its phases weight
-# 0, which is what production does when the web service has no match.
-gtsrce_lines() {
-    local STA
-    for STA in "$@"; do
-        if ! awk -F'|' -v S="${STA}" '!/^#/ && $2 == S {found=1; printf "GTSRCE %-5s LATLON %8.5f %8.5f 0.0 %5.3f\n", $2, $3, $4, $5/1000} END {exit !found}' "${STATIONS}"; then
-            echo "yanll-make-grids: station ${STA} not in ${STATIONS}, skipped" >&2
-        fi
-    done
+fail() {
+    echo "yanll-make-grids: $*" >&2
+    exit 2
 }
 
-# Stations of the list that lack a P or an S time grid in ${1}.
+[[ -s "${STATIONS}" ]] || fail "${STATIONS} missing: see ${DOCS}"
+[[ -s "${MODELCFG}/grid2time.in" ]] || fail "no model ${MODEL} in ${CONFIG}/models (grid2time.in missing): see ${DOCS}"
+
+# render <template> <output> NAME=value...: the template with every @NAME@ replaced by
+# its value, nothing else touched. A placeholder left over is a configuration error:
+# NLLoc would read it as literal text and fail far from the cause.
+render() {
+    local TEMPLATE="$1" OUTPUT="$2" PAIR VALUE
+    shift 2
+    local -a ARGS=()
+    for PAIR in "$@"; do
+        VALUE=$(printf '%s' "${PAIR#*=}" | sed 's/[&|\\]/\\&/g')
+        ARGS+=(-e "s|@${PAIR%%=*}@|${VALUE}|g")
+    done
+    sed "${ARGS[@]}" "${TEMPLATE}" > "${OUTPUT}"
+    if grep -q '@[A-Z][A-Z]*@' "${OUTPUT}"; then
+        fail "${TEMPLATE}: unknown placeholder $(grep -o '@[A-Z][A-Z]*@' "${OUTPUT}" | head -1): see ${DOCS}"
+    fi
+}
+
+# gtsrce_line <station>: the GTSRCE line of the station from the catalog (FDSN station
+# text: Network|Station|Latitude|Longitude|Elevation|...), elevation metres to km. The
+# code is the only key, as in the observation file. A code listed more than once (the
+# same station in two networks) takes its first line and the others are reported; a
+# code absent from the catalog is reported and skipped, and NLLoc then gives its phases
+# weight 0.
+gtsrce_line() {
+    local STA="$1"
+    awk -F'|' -v S="${STA}" -v CAT="${STATIONS}" '
+        !/^#/ && $2 == S { if (!n++) printf "GTSRCE %-5s LATLON %8.5f %8.5f 0.0 %5.3f\n", $2, $3, $4, $5/1000 }
+        END {
+            if (!n) print "yanll-make-grids: station " S " not in " CAT ", skipped" > "/dev/stderr"
+            else if (n > 1) print "yanll-make-grids: station " S " has " n " lines in " CAT ", the first one is used" > "/dev/stderr"
+        }' "${STATIONS}"
+}
+
+# Stations of the list that lack a P or an S time grid.
 missing_stations() {
-    local TIMEDIR="$1"
-    shift
     local STA
     for STA in "$@"; do
         if [[ ! -s "${TIMEDIR}/time.P.${STA}.time.buf" || ! -s "${TIMEDIR}/time.S.${STA}.time.buf" ]]; then
@@ -49,122 +83,69 @@ missing_stations() {
     done | sort -u
 }
 
-make_1d() {
-    local ZONE="$1"
-    shift
-    local MODELIN="${MODELS_1D}/model_${ZONE}.in"
-    local CENTRES="${MODELS_1D}/centri_20211027.lst"
-    local MODELDIR="${DATA}/model_1d/${ZONE}"
-    local TIMEDIR="${DATA}/time_1d/${ZONE}"
-    local LAT0 LON0 MINDEP PHASE
-    [[ -s "${MODELIN}" ]] || { echo "yanll-make-grids: unknown zone ${ZONE}" >&2; exit 2; }
-    # Zone origin from the centre table (last two columns), first layer depth from the
-    # model: the same reads Auto_Create_Model_Grid_NewZones.sh does.
-    read -r LAT0 LON0 <<< "$(awk -v NICK="${ZONE}" 'NR > 1 && ($5 "_" $3) == NICK {print $NF, $(NF-1)}' "${CENTRES}")"
-    MINDEP=$(awk '!/#/ {print $2; exit}' "${MODELIN}")
-    # Production invocation: steps 0.1,0.1 km, 600 km across, down to 110 km.
-    local VGGRID="VGGRID 2 6001 1141 0.0 0.0 ${MINDEP}  0.1 0.1 0.1 SLOW_LEN"
-    mkdir -p "${MODELDIR}" "${TIMEDIR}"
-
-    if [[ ! -s "${MODELDIR}/model.P.mod.buf" || ! -s "${MODELDIR}/model.S.mod.buf" ]]; then
-        for PHASE in P S; do
-            cat > "${MODELDIR}/vel2grid_${PHASE}.in" <<CTRL
-CONTROL 2 123456
-TRANS SIMPLE ${LAT0} ${LON0} 0.0
-VGOUT  ${MODELDIR}/model
-VGTYPE ${PHASE}
-${VGGRID}
-INCLUDE ${MODELIN}
-GTMODE GRID2D ANGLES_NO
-CTRL
-            Vel2Grid "${MODELDIR}/vel2grid_${PHASE}.in"
-        done
-    fi
-
-    local -a MISSING
-    mapfile -t MISSING < <(missing_stations "${TIMEDIR}" "$@")
-    [[ ${#MISSING[@]} -gt 0 ]] || return 0
-    local SRCFILE="${TIMEDIR}/stations.$$.in"
-    gtsrce_lines "${MISSING[@]}" > "${SRCFILE}"
-    [[ -s "${SRCFILE}" ]] || { rm -f "${SRCFILE}"; return 0; }
-    for PHASE in P S; do
-        cat > "${TIMEDIR}/grid2time_${PHASE}.in" <<CTRL
-CONTROL 2 123456
-TRANS SIMPLE ${LAT0} ${LON0} 0.0
-VGTYPE ${PHASE}
-${VGGRID}
-GTFILES ${MODELDIR}/model ${TIMEDIR}/time ${PHASE}
-GTMODE GRID2D ANGLES_NO
-INCLUDE ${SRCFILE}
-GT_PLFD  1.0e-3  0
-CTRL
-        Grid2Time "${TIMEDIR}/grid2time_${PHASE}.in"
-    done
-    rm -f "${SRCFILE}"
-}
-
-make_3d() {
-    local MODELDIR="${DATA}/model_3d"
-    local TIMEDIR="${DATA}/time_3d/${MODEL_3D}"
-    local TMP="${TIMEDIR}/tmp"
-    local PHASE STA LINE
-    for PHASE in P S; do
-        if [[ ! -s "${MODELDIR}/model.${PHASE}.mod.buf" || ! -s "${MODELDIR}/model.${PHASE}.mod.hdr" ]]; then
-            echo "yanll-make-grids: ${MODELDIR}/model.${PHASE}.mod.{hdr,buf} missing: copy the TOMORAMA_zmax800_deep files there (see README.md)" >&2
-            exit 2
-        fi
-    done
-    mkdir -p "${TIMEDIR}" "${TMP}/casc"
-    local -a MISSING
-    mapfile -t MISSING < <(missing_stations "${TIMEDIR}" "$@")
-    [[ ${#MISSING[@]} -gt 0 ]] || return 0
-    # One Grid2Time per station line and phase on the full 624x602x403 grid, then the
-    # cascading decimation at 20, 40 and 100 km that production reads through symlinks;
-    # here the decimated grid takes the final name directly and the full one is deleted.
-    # P and S run side by side: Grid2Time is single-threaded and takes minutes per
-    # grid on the full model. Each job is waited for by PID: a bare `wait` would hide
-    # a failed Grid2Time and leave the station without a grid.
-    local -a PIDS
-    while read -r LINE; do
-        STA=$(awk '{print $2}' <<< "${LINE}")
-        PIDS=()
-        for PHASE in P S; do
-            make_3d_grid "${STA}" "${PHASE}" "${LINE}" "${MODELDIR}" "${TIMEDIR}" "${TMP}" &
-            PIDS+=("$!")
-        done
-        for PID in "${PIDS[@]}"; do
-            wait "${PID}" || { echo "yanll-make-grids: 3D grid of ${STA} failed, see ${TMP}/grid2time_*.log" >&2; exit 1; }
-        done
-    done < <(gtsrce_lines "${MISSING[@]}" | awk '!seen[$2]++')
-}
-
-make_3d_grid() {
-    local STA="$1" PHASE="$2" LINE="$3" MODELDIR="$4" TIMEDIR="$5" TMP="$6"
-    cat > "${TMP}/grid2time_${PHASE}.in" <<CTRL
-CONTROL 1 54321
-TRANS TRANS_MERC WGS-84  0.0 15.0  0.0
-GTMODE GRID3D ANGLES_NO
-GT_PLFD  1.0e-3  0
-${LINE}
-GTFILES  ${MODELDIR}/model  ${TMP}/time   ${PHASE}
-CTRL
-    Grid2Time "${TMP}/grid2time_${PHASE}.in" > "${TMP}/grid2time_${PHASE}.log" 2>&1
-    # A station outside the model extent (Lampedusa, stations abroad) has no grid in
-    # production either and its phases get weight 0: skip it. Grid2Time exits 0 on
-    # this error, so the log is the only evidence; any other failure stays fatal.
-    if grep -q "Source point is not inside model grid" "${TMP}/grid2time_${PHASE}.log"; then
-        echo "yanll-make-grids: ${STA} is outside the ${MODEL_3D} model, no ${PHASE} grid" >&2
+make_model() {
+    local PHASE
+    if [[ -s "${MODELDIR}/model.P.mod.buf" && -s "${MODELDIR}/model.S.mod.buf" ]]; then
         return 0
     fi
-    GridCascadingDecimate 20,40,100 "${TMP}/time.${PHASE}.${STA}.time.buf" "${TMP}/casc/" >> "${TMP}/grid2time_${PHASE}.log" 2>&1
-    mv "${TMP}/casc/casc.time.${PHASE}.${STA}.time.hdr" "${TIMEDIR}/time.${PHASE}.${STA}.time.hdr"
-    mv "${TMP}/casc/casc.time.${PHASE}.${STA}.time.buf" "${TIMEDIR}/time.${PHASE}.${STA}.time.buf"
-    rm -f "${TMP}/time.${PHASE}.${STA}.time."*
-    echo "3D grid ${PHASE} ${STA} done"
+    if [[ ! -s "${MODELCFG}/vel2grid.in" ]]; then
+        fail "${MODELDIR}/model.{P,S}.mod.{hdr,buf} missing and ${MODELCFG} has no vel2grid.in: put the model grid there or add the template, see ${DOCS}"
+    fi
+    mkdir -p "${MODELDIR}"
+    for PHASE in P S; do
+        render "${MODELCFG}/vel2grid.in" "${MODELDIR}/vel2grid.${PHASE}.in" \
+            "MODEL=${MODELDIR}/model" "PHASE=${PHASE}" "CONFIG=${MODELCFG}"
+        Vel2Grid "${MODELDIR}/vel2grid.${PHASE}.in"
+    done
 }
 
-if [[ "${MODEL}" == "${MODEL_3D}" ]]; then
-    make_3d "$@"
-else
-    make_1d "${MODEL}" "$@"
-fi
+# make_time_grid <station> <phase> <gtsrce line>: Grid2Time into tmp/, then the grid
+# moves (decimated first when the model asks for it) into ${TIMEDIR} under its final
+# name, so that an interrupted run never leaves a half-written grid where NLLoc reads.
+make_time_grid() {
+    local STA="$1" PHASE="$2" LINE="$3"
+    local CTRL="${TMP}/grid2time.${PHASE}.${STA}.in" LOG="${TMP}/grid2time.${PHASE}.${STA}.log" STEPS
+    render "${MODELCFG}/grid2time.in" "${CTRL}" \
+        "MODEL=${MODELDIR}/model" "TIME=${TMP}/time" "PHASE=${PHASE}" "STATIONS=${LINE}" "CONFIG=${MODELCFG}"
+    Grid2Time "${CTRL}" > "${LOG}" 2>&1
+    # A station outside the model has no grid and its phases get weight 0: skip it.
+    # Grid2Time exits 0 on this error, so the log is the only evidence; any other
+    # failure stays fatal.
+    if grep -q "Source point is not inside model grid" "${LOG}"; then
+        echo "yanll-make-grids: ${STA} is outside the ${MODEL} model, no ${PHASE} grid" >&2
+        rm -f "${TMP}/time.${PHASE}.${STA}.time."* "${CTRL}" "${LOG}"
+        return 0
+    fi
+    if [[ -s "${MODELCFG}/cascade" ]]; then
+        STEPS=$(head -n 1 "${MODELCFG}/cascade" | tr -d '[:space:]')
+        GridCascadingDecimate "${STEPS}" "${TMP}/time.${PHASE}.${STA}.time.buf" "${TMP}/casc/" >> "${LOG}" 2>&1
+        mv "${TMP}/casc/casc.time.${PHASE}.${STA}.time.hdr" "${TIMEDIR}/time.${PHASE}.${STA}.time.hdr"
+        mv "${TMP}/casc/casc.time.${PHASE}.${STA}.time.buf" "${TIMEDIR}/time.${PHASE}.${STA}.time.buf"
+        rm -f "${TMP}/time.${PHASE}.${STA}.time."*
+    else
+        mv "${TMP}/time.${PHASE}.${STA}.time.hdr" "${TIMEDIR}/time.${PHASE}.${STA}.time.hdr"
+        mv "${TMP}/time.${PHASE}.${STA}.time.buf" "${TIMEDIR}/time.${PHASE}.${STA}.time.buf"
+    fi
+    rm -f "${CTRL}" "${LOG}"
+    echo "grid ${PHASE} ${STA} done"
+}
+
+make_model
+mkdir -p "${TIMEDIR}" "${TMP}/casc"
+# P and S run side by side: Grid2Time is single-threaded and takes minutes per grid on
+# a 3D model. Each job is waited for by PID: a bare `wait` would hide a failed
+# Grid2Time and leave the station without a grid.
+for STA in $(missing_stations "$@"); do
+    LINE=$(gtsrce_line "${STA}")
+    [[ -n "${LINE}" ]] || continue
+    PIDS=()
+    for PHASE in P S; do
+        make_time_grid "${STA}" "${PHASE}" "${LINE}" &
+        PIDS+=("$!")
+    done
+    for PID in "${PIDS[@]}"; do
+        # The job's own exit code is kept: 2 is a configuration error (a bad template),
+        # anything else an NLL failure.
+        wait "${PID}" || { RC=$?; echo "yanll-make-grids: grids of ${STA} failed, see ${TMP}" >&2; exit "${RC}"; }
+    done
+done
