@@ -4,7 +4,7 @@
 # travel-time grids and the 3D model body (./data by default, a few GB per model in
 # use); files under it are written by the container's user, root unless YANLL_USER is
 # set to uid:gid. The other mounts serve the checks: tests and scripts are not in the
-# image, fixtures and reference are the oracles, docs receives the comparison report.
+# image, fixtures are the oracles, docs receives the comparison report.
 # The platform is pinned: the published image is linux/amd64 only, and NLLoc built for
 # arm64 (an Apple Silicon host) loops forever at the end of the observation file.
 services:
@@ -19,5 +19,4 @@ services:
       - ./tests:/tests:ro
       - ./scripts:/scripts:ro
       - ./fixtures:/fixtures:ro
-      - ./reference:/reference:ro
       - ./docs:/docs
