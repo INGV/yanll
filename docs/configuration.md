@@ -157,9 +157,9 @@ observation file to an input document.
 ## The INGV configuration
 
 `config/ingv/` is written by `scripts/generate-ingv-config.py` from the production
-scripts and files copied under `reference/production/` (kept in the INGV working copy,
-not in the repository, like the internal document on how production builds its control
-files): 17 regional 1D models, named by zone
+files copied under `reference/production/` (the zone table, the 1D models, the
+corrections, the 3D model header; how production builds its control files is an INGV
+internal document, not in the repository): 17 regional 1D models, named by zone
 (`Alpi-Occidentali_1`, ..., `Sardegna_12`), each with `vel2grid.in`, `velocity.in`,
 `grid2time.in`, `locate.in` and, except `Sardegna_12`, `corrections.in`; and the 3D model
 `TOMORAMA-2013` with `grid2time.in`, `locate.in`, `corrections.in` and `cascade`. The

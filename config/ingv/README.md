@@ -4,8 +4,7 @@ The configuration yanll runs with at INGV, in the layout `docs/configuration.md`
 describes. Generated: do not edit `models/` by hand.
 
 - `models/` is written by `scripts/generate-ingv-config.py` from the production files
-  under `reference/production/` (INGV working copy only, not in the repository): the 17
-  regional 1D models (one per zone of
+  under `reference/production/`: the 17 regional 1D models (one per zone of
   `centri_20211027.lst`, with the velocity model, the Vel2Grid and Grid2Time templates,
   the NLLoc template and the station corrections; `Sardegna_12` has no corrections) and
   the 3D model `TOMORAMA-2013` (Grid2Time and NLLoc templates, corrections, `cascade`

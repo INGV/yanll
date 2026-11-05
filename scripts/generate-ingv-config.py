@@ -1,7 +1,5 @@
 #!/usr/bin/env python3
-"""Generate the INGV configuration of yanll, config/ingv/models/, from reference/production
-(copies of the INGV production host that git ignores: the script runs in the working copy
-that has them, a plain clone has only its output).
+"""Generate the INGV configuration of yanll, config/ingv/models/, from reference/production.
 
 The engine knows nothing about INGV: every production fact lives here and is written
 literally into the NLL control-file templates the engine fills at run time (see

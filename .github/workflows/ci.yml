@@ -6,9 +6,9 @@
 # the tested sources are then published to Docker Hub.
 #
 # Two checks are not here because a runner cannot have their inputs: the reference check
-# reads reference/ and the internal documents, which are not in the repository, and the
-# comparison with production needs the 3D model body and the grids. Both run by hand
-# (README, Checking and Comparing with production).
+# reads the whole reference/ tree and the internal documents, mostly not in the
+# repository, and the comparison with production needs the 3D model body and the grids.
+# Both run by hand (README, Checking and Comparing with production).
 name: ci
 
 on:
