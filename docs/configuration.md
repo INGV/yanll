@@ -157,8 +157,9 @@ observation file to an input document.
 ## The INGV configuration
 
 `config/ingv/` is written by `scripts/generate-ingv-config.py` from the production
-scripts and files copied under `reference/production/` (how production builds its
-control files is `docs/production-flow.md`): 17 regional 1D models, named by zone
+scripts and files copied under `reference/production/` (kept in the INGV working copy,
+not in the repository, like the internal document on how production builds its control
+files): 17 regional 1D models, named by zone
 (`Alpi-Occidentali_1`, ..., `Sardegna_12`), each with `vel2grid.in`, `velocity.in`,
 `grid2time.in`, `locate.in` and, except `Sardegna_12`, `corrections.in`; and the 3D model
 `TOMORAMA-2013` with `grid2time.in`, `locate.in`, `corrections.in` and `cascade`. The
@@ -168,7 +169,8 @@ comment lines. Rerun it after a change under `reference/` and commit the result;
 station catalog `config/ingv/stations.txt` is refreshed by `scripts/fetch-stations.sh`
 instead. The 3D model body is not in the repository (1.2 GB): copy the production pair
 `TOMORAMA_zmax800_deep.{P,S}.mod.{hdr,buf}` to `${YANLL_DATA}/model/TOMORAMA-2013/` as
-`model.{P,S}.mod.{hdr,buf}` (checksums in `docs/production-flow.md`, section 2.2).
+`model.{P,S}.mod.{hdr,buf}` (checksums in the INGV internal `docs/production-flow.md`,
+section 2.2).
 
 The tests in `tests/` and the comparison `tests/yanll-compare` run with this
 configuration mounted and prove that the rendered control files are production's byte

@@ -1,3 +1,10 @@
 CLAUDE.md
 prompts/
 data/
+# INGV internals, kept in the working copy and out of the repository: the copies of the
+# production host and the documents that describe it. Of docs/ only the contract is
+# tracked (configuration.md, json-schema.md).
+reference/
+docs/*
+!docs/configuration.md
+!docs/json-schema.md

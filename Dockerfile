@@ -27,7 +27,7 @@ FROM debian:bookworm-slim
 ARG NLL_REPO
 ARG NLL_COMMIT
 # Set by the CI when it publishes; the defaults mark a local build.
-ARG SOURCE=https://gitlab.rm.ingv.it/nll/yanll
+ARG SOURCE=https://github.com/INGV/yanll
 ARG REVISION=local
 ARG VERSION=dev
 

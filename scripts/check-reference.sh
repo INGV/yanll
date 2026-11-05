@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # Phase-1 check: every production path and script that docs/production-flow.md relies
 # on must be present in reference/production/, the fixtures it points to must exist, and
-# no copied file may still hold a credential.
+# no copied file may still hold a credential. Both inputs are INGV internals that git
+# ignores: the check runs in the working copy that has them, not in a plain clone.
 set -euo pipefail
 
 cd "$(dirname "${BASH_SOURCE[0]}")/.."
