@@ -2,9 +2,17 @@ CLAUDE.md
 prompts/
 data/
 # INGV internals, kept in the working copy and out of the repository: the copies of the
-# production host and the documents that describe it. Of docs/ only the contract is
-# tracked (configuration.md, json-schema.md).
-reference/
+# production host and the documents that describe it. Of reference/ only the inputs of
+# scripts/generate-ingv-config.py are tracked (zone table, 1D models, corrections, 3D
+# model header: data that config/ingv publishes anyway); of docs/ only the contract
+# (configuration.md, json-schema.md).
+reference/**
+!reference/**/
+!reference/production/opt/nll/run/modelli_20211027/centri_20211027.lst
+!reference/production/opt/nll/run/modelli_20211027/model_*.in
+!reference/production/opt/nll/run/modelli_20211027/correzioni/correzioni_*.in
+!reference/production/opt/nll/run/corrections_3d/corrections_TOMORAMA-2013.in
+!reference/production/opt/nll/model_TOMORAMA-2013/TOMORAMA_zmax800_deep.P.mod.hdr
 docs/*
 !docs/configuration.md
 !docs/json-schema.md

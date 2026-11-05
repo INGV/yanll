@@ -1,0 +1,19 @@
+LON_MOD LAT_MOD ID SUBID AREA_EXTENDED_NAME	DIR     INTERP_MODEL-SIZE    P&LGRID-X    P&L_GRID-Y P&L_LON0 P&L_LAT0 NOTE
+ 6.9900 45.0078  1 1     Alpi-Occidentali   	AREA_1	halfsidekm 80	     200	  280	        7.7000  45.0078	
+ 9.7342 46.2545  2 2  	 Alpi-Centrali    	AREA_2	halfsidekm 80	     200	  170	   	9.7342  46.2545	
+12.9605 46.3500  3 3  	 Alpi-Orientali   	AREA_3 	halfsidekm 80	     200	  170	   	13.3000 46.3500	
+11.2000 44.9000  4 4  	 Pianura-Padana   	AREA_4	halfsidekm 40	     280	  100     	11.0000 45.0000	
+10.0117 44.4114 5a 51 	 Fascia-Appenninica   	AREA_5a	halfsidekm 40	     200	   80		10.5000 44.3000
+12.7833 42.9824 5b 52 	 Fascia-Appenninica   	AREA_5b	halfsidekm 40	     180	  190		12.7833 43.3000
+14.3233 41.6400 5c 53 	 Fascia-Appenninica   	AREA_5c	halfsidekm 40	     120	  110		14.5000 41.5000	
+15.6500 40.2791 5d 54 	 Fascia-Appenninica   	AREA_5d	halfsidekm 40	     140	  160	   	15.6500 39.8000
+13.6000 43.2251 6a 61 	 Fascia-Adriatica    	AREA_6a	halfsidekm 40	     140	  180	   	13.6000 43.5000
+15.0000 41.7625 6b 62 	 Fascia-Adriatica    	AREA_6b	halfsidekm 40	     120	  130	   	15.0000 41.8000
+15.9000 41.8000  7 7  	 Gargano		AREA_7	halfsidekm 40	     160	  150	   	15.5000 42.0000
+17.2000 40.7339  8 8  	 Salento 		AREA_8	halfsidekm 40	     180	  180	   	17.8000 40.5000
+11.0000 43.0000 9a 91 	 Fascia-Tirrenica   	AREA_9a	halfsidekm 60	     230	  200		10.5000 42.8000	
+13.5139 41.3134 9b 92 	 Fascia-Tirrenica   	AREA_9b	halfsidekm 40	     180	  150	   	13.5139 41.3134	
+16.5000 38.9000 10 10 	 Calabria 		AREA_10	halfsidekm 50	     200	  230	   	16.5000 38.6000
+14.1500 37.6500 11 11 	 Sicilia 		AREA_11	halfsidekm 80	     230	  270		13.8000 37.8000	
+ 9.0000 40.0000 12 12 	 Sardegna 		AREA_12	halfsidekm 50	     220	  280	   	10.0000 40.3000
+ 

@@ -1,7 +1,7 @@
 # Release Notes
 
 ### Release 2.4.0-dev (2026-11-05)
-  - . . .
+  - chore: track the generator inputs under reference/ (zone table, models, corrections, 3D header)
 
 ### Release 2.3.0 (2026-11-05)
   - chore: add the AGPL-3.0 license
