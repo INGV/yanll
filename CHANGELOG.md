@@ -1,5 +1,8 @@
 # Release Notes
 
+### Release 2.4.0-dev (2026-11-05)
+  - . . .
+
 ### Release 2.3.0 (2026-11-05)
   - chore: add the AGPL-3.0 license
   - docs: add badges and a license section to the README
