@@ -71,7 +71,8 @@ production never used the INGV epicentre for anything but the choice of the zone
 
 The values below are those of the production run of the fixture event `47442632_147825511`, except
 `nll.version`, which is the container's; the container reproduces them within the
-project tolerance (see `docs/comparison-report.md`), not to the digit.
+project tolerance (1 km in epicentre, 2 km in depth, 0.5 s in origin time), not to the
+digit.
 
 ```json
 {

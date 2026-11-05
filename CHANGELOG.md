@@ -1,6 +1,9 @@
 # Release Notes
 
-### Release 2.3.0-dev (2026-10-18)
+### Release 2.3.0-dev (2026-11-05)
+  - chore: move the repository to github.com/INGV/yanll; reference/ and internal docs untracked
+  - ci: replace GitLab CI with GitHub Actions; set secrets DOCKER_HUB_USERNAME/_ACCESS_TOKEN
+  - docs: adapt README and the configuration contract to the public repository
   - docs: add a quick start to the README, pull to first location with the published image
 
 ### Release 2.2.0 (2026-10-18)
