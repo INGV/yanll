@@ -1,3 +1,11 @@
+[![Build Status](https://github.com/INGV/yanll/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/INGV/yanll/actions/workflows/ci.yml?query=branch%3Amain)
+[![Version](https://img.shields.io/github/v/tag/INGV/yanll?sort=semver&label=ver)](https://github.com/INGV/yanll/blob/main/CHANGELOG.md)
+[![Docker Image Version](https://img.shields.io/docker/v/ingv/yanll?sort=semver&label=docker)](https://hub.docker.com/r/ingv/yanll/tags)
+[![Docker Pulls](https://img.shields.io/docker/pulls/ingv/yanll)](https://hub.docker.com/r/ingv/yanll)
+[![Docker Image Size](https://img.shields.io/docker/image-size/ingv/yanll/latest)](https://hub.docker.com/r/ingv/yanll/tags)
+[![License](https://img.shields.io/github/license/INGV/yanll.svg)](https://github.com/INGV/yanll/blob/main/LICENSE)
+[![GitHub issues](https://img.shields.io/github/issues/INGV/yanll.svg)](https://github.com/INGV/yanll/issues)
+
 # yanll
 
 yanll restructures NonLinLoc (NLL) into a containerized JSON-in / JSON-out locator: one
@@ -377,3 +385,10 @@ with the repository secrets `DOCKER_HUB_USERNAME` and `DOCKER_HUB_ACCESS_TOKEN`.
 checks are not in the workflow and run by hand: the reference check, whose inputs are
 not in the repository (section Checking), and the comparison with production, since no
 runner has the 3D model body or the grids (section Comparing with production).
+
+## License
+
+This project is released under the **GNU Affero General Public License v3.0 or
+later** (AGPL-3.0-or-later). See the [`LICENSE`](LICENSE) file for the full text. The
+image also carries the NonLinLoc binaries, built unmodified from the upstream sources at
+the pinned commit and released by their authors under the GPL-3.0.
